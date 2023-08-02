@@ -1,0 +1,2 @@
+[plugins]
+rust-test = "source:target/wasm32-wasi/debug/rust_plugin.wasm"
