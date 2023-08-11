@@ -1,7 +1,7 @@
 use crate::toolchain_toml::ToolchainToml;
 use extism_pdk::*;
 use proto_pdk::*;
-use starbase_utils::toml;
+use std::fs;
 
 #[host_fn]
 extern "ExtismHost" {
@@ -125,17 +125,18 @@ pub fn load_versions(Json(_): Json<LoadVersionsInput>) -> FnResult<Json<LoadVers
     Ok(Json(LoadVersionsOutput::from_tags(&tags)?))
 }
 
+fn is_non_version_channel(value: &str) -> bool {
+    value == "stable" || value == "beta" || value == "nightly" || value.starts_with("nightly")
+}
+
 #[plugin_fn]
 pub fn resolve_version(
     Json(input): Json<ResolveVersionInput>,
 ) -> FnResult<Json<ResolveVersionOutput>> {
     let mut output = ResolveVersionOutput::default();
 
-    if input.initial == "stable"
-        || input.initial == "beta"
-        || input.initial == "nightly"
-        || input.initial.starts_with("nightly")
-    {
+    // Allow channels as explicit aliases
+    if is_non_version_channel(&input.initial) {
         output.version = Some(input.initial);
     }
 
@@ -176,4 +177,39 @@ pub fn create_shims(Json(_): Json<CreateShimsInput>) -> FnResult<Json<CreateShim
         no_primary_global: true,
         ..CreateShimsOutput::default()
     }))
+}
+
+#[plugin_fn]
+pub fn sync_manifest(Json(input): Json<SyncManifestInput>) -> FnResult<Json<SyncManifestOutput>> {
+    let triple = get_triple_target(&input.env)?;
+    let mut output = SyncManifestOutput::default();
+    let mut versions = vec![];
+
+    for dir in fs::read_dir(input.home_dir.join(".rustup/toolchains"))? {
+        let dir = dir?.path();
+
+        if !dir.is_dir() {
+            continue;
+        }
+
+        let name = dir.file_name().unwrap_or_default().to_string_lossy();
+
+        if !name.ends_with(&triple) {
+            continue;
+        }
+
+        let name = name.replace(&format!("-{triple}"), "");
+
+        if is_non_version_channel(&name) {
+            continue;
+        }
+
+        versions.push(Version::parse(&name)?);
+    }
+
+    if !versions.is_empty() {
+        output.versions = Some(versions);
+    }
+
+    Ok(Json(output))
 }

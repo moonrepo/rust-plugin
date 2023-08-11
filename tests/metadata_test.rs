@@ -15,7 +15,7 @@ fn registers_metadata() {
 
     assert_eq!(metadata.name, "Rust");
     assert_eq!(metadata.default_version, Some("stable".to_owned()));
-    assert_eq!(metadata.inventory.disable_progress_bars, true);
+    assert!(metadata.inventory.disable_progress_bars);
     assert_eq!(
         metadata.inventory.override_dir,
         Some(PathBuf::from("/home/.rustup/toolchains"))
