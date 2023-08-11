@@ -10,7 +10,7 @@ Build the plugin:
 cargo build --target wasm32-wasi
 ```
 
-Test the plugin by running `proto` commands. Requires proto >= v0.12.
+Test the plugin by running `proto` commands. Requires proto >= v0.14.
 
 ```shell
 proto install rust-test
