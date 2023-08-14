@@ -98,9 +98,9 @@ pub fn native_install(
 }
 
 #[plugin_fn]
-pub fn locate_bins(Json(_): Json<LocateBinsInput>) -> FnResult<Json<LocateBinsOutput>> {
+pub fn locate_bins(Json(input): Json<LocateBinsInput>) -> FnResult<Json<LocateBinsOutput>> {
     Ok(Json(LocateBinsOutput {
-        bin_path: Some("bin/rustc".into()),
+        bin_path: Some(format_bin_name("bin/rustc", input.env.os).into()),
         fallback_last_globals_dir: true,
         globals_lookup_dirs: vec![
             "$CARGO_INSTALL_ROOT".into(),

@@ -1,6 +1,6 @@
 [package]
 name = "rust_plugin"
-version = "0.0.2"
+version = "0.0.3"
 edition = "2021"
 license = "MIT"
 publish = false
@@ -10,11 +10,11 @@ crate-type = ['cdylib']
 
 [dependencies]
 extism-pdk = "0.3.3"
-proto_pdk = { version = "0.4.3" }
+proto_pdk = { version = "0.4.4" }
 serde = "1.0.183"
 toml = "0.7.6"
 
 [dev-dependencies]
-proto_pdk_test_utils = { version = "0.3.6" }
+proto_pdk_test_utils = { version = "0.3.7" }
 starbase_sandbox = "0.1.8"
-tokio = "1.30.0"
+tokio = "1.31.0"

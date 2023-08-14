@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.0.3
+
+#### 🐞 Fixes
+
+- Fixed an issue where the `rustc` binary wasn't properly located on Windows.
+
 ## 0.0.2
 
 #### 🚀 Updates
