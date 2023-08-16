@@ -22,6 +22,7 @@ pub fn register_tool(Json(input): Json<ToolMetadataInput>) -> FnResult<Json<Tool
             override_dir: Some(input.home_dir.join(".rustup/toolchains")),
             version_suffix: Some(format!("-{}", get_triple_target(&input.env)?)),
         },
+        plugin_version: Some(env!("CARGO_PKG_VERSION").into()),
         ..ToolMetadataOutput::default()
     }))
 }
@@ -103,7 +104,7 @@ pub fn locate_bins(Json(input): Json<LocateBinsInput>) -> FnResult<Json<LocateBi
         bin_path: Some(format_bin_name("bin/rustc", input.env.os).into()),
         fallback_last_globals_dir: true,
         globals_lookup_dirs: vec![
-            "$CARGO_INSTALL_ROOT".into(),
+            "$CARGO_INSTALL_ROOT/bin".into(),
             "$CARGO_HOME/bin".into(),
             "$HOME/.cargo/bin".into(),
         ],
@@ -122,7 +123,7 @@ pub fn load_versions(Json(_): Json<LoadVersionsInput>) -> FnResult<Json<LoadVers
         .map(|t| t.to_owned())
         .collect::<Vec<_>>();
 
-    Ok(Json(LoadVersionsOutput::from_tags(&tags)?))
+    Ok(Json(LoadVersionsOutput::from(tags)?))
 }
 
 fn is_non_version_channel(value: &str) -> bool {
@@ -177,6 +178,24 @@ pub fn create_shims(Json(_): Json<CreateShimsInput>) -> FnResult<Json<CreateShim
         no_primary_global: true,
         ..CreateShimsOutput::default()
     }))
+}
+
+#[plugin_fn]
+pub fn install_global(
+    Json(input): Json<InstallGlobalInput>,
+) -> FnResult<Json<InstallGlobalOutput>> {
+    let result = exec_command!("cargo", ["install", "--force", &input.dependency]);
+
+    Ok(Json(InstallGlobalOutput::from_exec_command(result)))
+}
+
+#[plugin_fn]
+pub fn uninstall_global(
+    Json(input): Json<UninstallGlobalInput>,
+) -> FnResult<Json<UninstallGlobalOutput>> {
+    let result = exec_command!("cargo", ["uninstall", &input.dependency]);
+
+    Ok(Json(UninstallGlobalOutput::from_exec_command(result)))
 }
 
 #[plugin_fn]
