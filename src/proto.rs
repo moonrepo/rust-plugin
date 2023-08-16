@@ -104,7 +104,7 @@ pub fn locate_bins(Json(input): Json<LocateBinsInput>) -> FnResult<Json<LocateBi
         bin_path: Some(format_bin_name("bin/rustc", input.env.os).into()),
         fallback_last_globals_dir: true,
         globals_lookup_dirs: vec![
-            "$CARGO_INSTALL_ROOT".into(),
+            "$CARGO_INSTALL_ROOT/bin".into(),
             "$CARGO_HOME/bin".into(),
             "$HOME/.cargo/bin".into(),
         ],

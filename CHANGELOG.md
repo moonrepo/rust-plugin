@@ -6,6 +6,10 @@
 
 - Added support for `install_global` and `uninstall_global`.
 
+#### 🐞 Fixes
+
+- Fixed an issue where the globals directory for `CARGO_INSTALL_ROOT` was incorrect.
+
 ## 0.0.3
 
 #### 🐞 Fixes
