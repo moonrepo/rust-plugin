@@ -12,15 +12,17 @@ extern "ExtismHost" {
 static NAME: &str = "Rust";
 
 #[plugin_fn]
-pub fn register_tool(Json(input): Json<ToolMetadataInput>) -> FnResult<Json<ToolMetadataOutput>> {
+pub fn register_tool(Json(_): Json<ToolMetadataInput>) -> FnResult<Json<ToolMetadataOutput>> {
+    let env = get_proto_environment()?;
+
     Ok(Json(ToolMetadataOutput {
         name: NAME.into(),
         type_of: PluginType::Language,
         default_version: Some("stable".into()),
         inventory: ToolInventoryMetadata {
             disable_progress_bars: true,
-            override_dir: Some(input.home_dir.join(".rustup/toolchains")),
-            version_suffix: Some(format!("-{}", get_triple_target(&input.env)?)),
+            override_dir: Some(env.home_dir.join(".rustup/toolchains")),
+            version_suffix: Some(format!("-{}", get_triple_target(&env)?)),
         },
         plugin_version: Some(env!("CARGO_PKG_VERSION").into()),
         ..ToolMetadataOutput::default()
@@ -36,7 +38,7 @@ fn is_musl() -> bool {
     }
 }
 
-fn get_triple_target(env: &Environment) -> Result<String, PluginError> {
+fn get_triple_target(env: &HostEnvironment) -> Result<String, PluginError> {
     let arch = env.arch.to_rust_arch();
 
     Ok(match &env.os {
@@ -61,9 +63,11 @@ fn get_triple_target(env: &Environment) -> Result<String, PluginError> {
 pub fn native_install(
     Json(input): Json<NativeInstallInput>,
 ) -> FnResult<Json<NativeInstallOutput>> {
+    let env = get_proto_environment()?;
+
     // Check if rustup is installed
     let result = exec_command!(
-        if input.env.os == HostOS::Windows {
+        if env.os == HostOS::Windows {
             "Get-Command"
         } else {
             "which"
@@ -78,7 +82,7 @@ pub fn native_install(
         );
     }
 
-    let triple = format!("{}-{}", input.env.version, get_triple_target(&input.env)?);
+    let triple = format!("{}-{}", input.state.version, get_triple_target(&env)?);
 
     host_log!("Installing target \"{}\" with rustup", triple);
 
@@ -90,7 +94,7 @@ pub fn native_install(
     } else {
         exec_command!(ExecCommandInput::inherit(
             "rustup",
-            ["toolchain", "install", &input.env.version]
+            ["toolchain", "install", &input.state.version]
         ));
     }
 
@@ -99,9 +103,11 @@ pub fn native_install(
 }
 
 #[plugin_fn]
-pub fn locate_bins(Json(input): Json<LocateBinsInput>) -> FnResult<Json<LocateBinsOutput>> {
+pub fn locate_bins(Json(_): Json<LocateBinsInput>) -> FnResult<Json<LocateBinsOutput>> {
+    let env = get_proto_environment()?;
+
     Ok(Json(LocateBinsOutput {
-        bin_path: Some(format_bin_name("bin/rustc", input.env.os).into()),
+        bin_path: Some(format_bin_name("bin/rustc", env.os).into()),
         fallback_last_globals_dir: true,
         globals_lookup_dirs: vec![
             "$CARGO_INSTALL_ROOT/bin".into(),
@@ -199,12 +205,13 @@ pub fn uninstall_global(
 }
 
 #[plugin_fn]
-pub fn sync_manifest(Json(input): Json<SyncManifestInput>) -> FnResult<Json<SyncManifestOutput>> {
-    let triple = get_triple_target(&input.env)?;
+pub fn sync_manifest(Json(_): Json<SyncManifestInput>) -> FnResult<Json<SyncManifestOutput>> {
+    let env = get_proto_environment()?;
+    let triple = get_triple_target(&env)?;
     let mut output = SyncManifestOutput::default();
     let mut versions = vec![];
 
-    for dir in fs::read_dir(input.home_dir.join(".rustup/toolchains"))? {
+    for dir in fs::read_dir(env.home_dir.join(".rustup/toolchains"))? {
         let dir = dir?.path();
 
         if !dir.is_dir() {
