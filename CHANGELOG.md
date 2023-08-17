@@ -4,7 +4,9 @@
 
 #### 🚀 Updates
 
+- Added uninstall support (uses `rustup toolchain uninstall`).
 - Added support for `install_global` and `uninstall_global`.
+- Updated to support proto v0.15 release.
 
 #### 🐞 Fixes
 

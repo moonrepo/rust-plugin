@@ -82,7 +82,7 @@ pub fn native_install(
         );
     }
 
-    let triple = format!("{}-{}", input.state.version, get_triple_target(&env)?);
+    let triple = format!("{}-{}", input.context.version, get_triple_target(&env)?);
 
     host_log!("Installing target \"{}\" with rustup", triple);
 
@@ -94,12 +94,24 @@ pub fn native_install(
     } else {
         exec_command!(ExecCommandInput::inherit(
             "rustup",
-            ["toolchain", "install", &input.state.version]
+            ["toolchain", "install", &input.context.version]
         ));
     }
 
     // Always mark as installed so that binaries can be located!
     Ok(Json(NativeInstallOutput { installed: true }))
+}
+
+#[plugin_fn]
+pub fn native_uninstall(
+    Json(input): Json<NativeUninstallInput>,
+) -> FnResult<Json<NativeUninstallOutput>> {
+    exec_command!(ExecCommandInput::inherit(
+        "rustup",
+        ["toolchain", "uninstall", &input.context.version]
+    ));
+
+    Ok(Json(NativeUninstallOutput { uninstalled: true }))
 }
 
 #[plugin_fn]

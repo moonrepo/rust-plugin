@@ -1,6 +1,5 @@
 use proto_pdk_test_utils::*;
 use starbase_sandbox::create_empty_sandbox;
-use std::path::PathBuf;
 
 // We use a fake home directory but rustup requires a real one!
 // generate_download_install_tests!("rust-test", "1.70.0");
@@ -8,19 +7,21 @@ use std::path::PathBuf;
 #[test]
 fn locates_linux_bin() {
     let sandbox = create_empty_sandbox();
-    let plugin = create_plugin("rust-test", sandbox.path());
+    let mut plugin = create_plugin("rust-test", sandbox.path());
+
+    plugin.set_environment(HostEnvironment {
+        arch: HostArch::Arm64,
+        os: HostOS::Linux,
+        ..Default::default()
+    });
 
     assert_eq!(
         plugin
             .locate_bins(LocateBinsInput {
-                env: Environment {
-                    arch: HostArch::Arm64,
-                    os: HostOS::Linux,
+                context: ToolContext {
                     version: "1.69.0".into(),
                     ..Default::default()
                 },
-                home_dir: PathBuf::new(),
-                tool_dir: PathBuf::new(),
             })
             .bin_path,
         Some("bin/rustc".into())
@@ -30,19 +31,21 @@ fn locates_linux_bin() {
 #[test]
 fn locates_macos_bin() {
     let sandbox = create_empty_sandbox();
-    let plugin = create_plugin("rust-test", sandbox.path());
+    let mut plugin = create_plugin("rust-test", sandbox.path());
+
+    plugin.set_environment(HostEnvironment {
+        arch: HostArch::X64,
+        os: HostOS::MacOS,
+        ..Default::default()
+    });
 
     assert_eq!(
         plugin
             .locate_bins(LocateBinsInput {
-                env: Environment {
-                    arch: HostArch::X64,
-                    os: HostOS::MacOS,
+                context: ToolContext {
                     version: "1.69.0".into(),
                     ..Default::default()
                 },
-                home_dir: PathBuf::new(),
-                tool_dir: PathBuf::new(),
             })
             .bin_path,
         Some("bin/rustc".into())
@@ -52,19 +55,21 @@ fn locates_macos_bin() {
 #[test]
 fn locates_windows_bin() {
     let sandbox = create_empty_sandbox();
-    let plugin = create_plugin("rust-test", sandbox.path());
+    let mut plugin = create_plugin("rust-test", sandbox.path());
+
+    plugin.set_environment(HostEnvironment {
+        arch: HostArch::X86,
+        os: HostOS::Windows,
+        ..Default::default()
+    });
 
     assert_eq!(
         plugin
             .locate_bins(LocateBinsInput {
-                env: Environment {
-                    arch: HostArch::X86,
-                    os: HostOS::Windows,
+                context: ToolContext {
                     version: "1.69.0".into(),
                     ..Default::default()
                 },
-                home_dir: PathBuf::new(),
-                tool_dir: PathBuf::new(),
             })
             .bin_path,
         Some("bin/rustc.exe".into())
