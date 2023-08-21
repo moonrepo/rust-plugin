@@ -67,6 +67,7 @@ pub fn native_install(
 
     // Check if rustup is installed
     let result = exec_command!(
+        pipe,
         if env.os == HostOS::Windows {
             "Get-Command"
         } else {
@@ -87,7 +88,7 @@ pub fn native_install(
     host_log!("Installing target \"{}\" with rustup", triple);
 
     // Install if not already installed
-    let installed_list = exec_command!("rustup", ["toolchain", "list"]);
+    let installed_list = exec_command!(pipe, "rustup", ["toolchain", "list"]);
 
     if installed_list.stdout.contains(&triple) {
         host_log!("Target already installed in toolchain");
@@ -202,7 +203,7 @@ pub fn create_shims(Json(_): Json<CreateShimsInput>) -> FnResult<Json<CreateShim
 pub fn install_global(
     Json(input): Json<InstallGlobalInput>,
 ) -> FnResult<Json<InstallGlobalOutput>> {
-    let result = exec_command!("cargo", ["install", "--force", &input.dependency]);
+    let result = exec_command!(inherit, "cargo", ["install", "--force", &input.dependency]);
 
     Ok(Json(InstallGlobalOutput::from_exec_command(result)))
 }
@@ -211,7 +212,7 @@ pub fn install_global(
 pub fn uninstall_global(
     Json(input): Json<UninstallGlobalInput>,
 ) -> FnResult<Json<UninstallGlobalOutput>> {
-    let result = exec_command!("cargo", ["uninstall", &input.dependency]);
+    let result = exec_command!(inherit, "cargo", ["uninstall", &input.dependency]);
 
     Ok(Json(UninstallGlobalOutput::from_exec_command(result)))
 }
