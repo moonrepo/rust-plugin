@@ -9,8 +9,6 @@ fn registers_metadata() {
 
     let metadata = plugin.register_tool(ToolMetadataInput {
         id: "rust-test".into(),
-        env: plugin.tool.create_environment().unwrap(),
-        home_dir: PathBuf::from("/home"),
     });
 
     assert_eq!(metadata.name, "Rust");
@@ -18,7 +16,7 @@ fn registers_metadata() {
     assert!(metadata.inventory.disable_progress_bars);
     assert_eq!(
         metadata.inventory.override_dir,
-        Some(PathBuf::from("/home/.rustup/toolchains"))
+        Some(PathBuf::from("/workspace/.home/.rustup/toolchains"))
     );
     assert!(metadata.inventory.version_suffix.is_some());
 }

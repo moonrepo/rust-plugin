@@ -45,5 +45,6 @@ jobs:
       - uses: moonrepo/setup-rust@v1
         with:
           bins: cargo-wasi, cargo-nextest
+          cache: false
       - run: cargo wasi build
       - run: cargo nextest run

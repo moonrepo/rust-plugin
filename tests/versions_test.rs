@@ -40,7 +40,6 @@ fn parses_rust_toolchain() {
         plugin.parse_version_file(ParseVersionFileInput {
             content: "1.60.0".into(),
             file: "rust-toolchain".into(),
-            env: Environment::default(),
         }),
         ParseVersionFileOutput {
             version: Some("1.60.0".into()),
@@ -57,7 +56,6 @@ fn ignores_empty_rust_toolchain() {
         plugin.parse_version_file(ParseVersionFileInput {
             content: "".into(),
             file: "rust-toolchain".into(),
-            env: Environment::default(),
         }),
         ParseVersionFileOutput { version: None }
     );
@@ -72,7 +70,6 @@ fn parses_rust_toolchain_toml() {
         plugin.parse_version_file(ParseVersionFileInput {
             content: "[toolchain]\nchannel = \"1.70.0\"".into(),
             file: "rust-toolchain.toml".into(),
-            env: Environment::default(),
         }),
         ParseVersionFileOutput {
             version: Some("1.70.0".into()),
@@ -89,7 +86,6 @@ fn ignores_empty_rust_toolchain_toml() {
         plugin.parse_version_file(ParseVersionFileInput {
             content: "[toolchain]".into(),
             file: "rust-toolchain.toml".into(),
-            env: Environment::default(),
         }),
         ParseVersionFileOutput { version: None }
     );
