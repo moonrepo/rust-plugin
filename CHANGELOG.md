@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1
+
+#### 🐞 Fixes
+
+- Fixed `rustup` detection on Windows.
+
 ## 0.1.0
 
 #### 🚀 Updates
