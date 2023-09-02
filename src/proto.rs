@@ -65,21 +65,21 @@ pub fn native_install(
 ) -> FnResult<Json<NativeInstallOutput>> {
     let env = get_proto_environment()?;
 
-    // Check if rustup is installed
-    let result = exec_command!(
-        pipe,
-        if env.os == HostOS::Windows {
-            "Get-Command"
-        } else {
-            "which"
-        },
-        ["rustup"]
-    );
+    // Check if rustup is installed (returns `Err` otherwise)
+    let result = if env.os == HostOS::Windows {
+        unsafe {
+            exec_command(Json(ExecCommandInput::pipe(
+                "powershell",
+                ["-Command", "Get-Command rustup"],
+            )))
+        }
+    } else {
+        unsafe { exec_command(Json(ExecCommandInput::pipe("which", ["rustup"]))) }
+    };
 
-    if result.exit_code != 0 || result.stdout.is_empty() {
+    if result.is_err() {
         return err!(
-            "proto requires `rustup` to be installed and available on PATH to use Rust. Please install it and try again.".into(),
-            result.exit_code
+            "proto requires `rustup` to be installed and available on PATH to use Rust. Please install it and try again.".into()
         );
     }
 
@@ -93,10 +93,11 @@ pub fn native_install(
     if installed_list.stdout.contains(&triple) {
         host_log!("Target already installed in toolchain");
     } else {
-        exec_command!(ExecCommandInput::inherit(
+        exec_command!(
+            inherit,
             "rustup",
             ["toolchain", "install", &input.context.version]
-        ));
+        );
     }
 
     // Always mark as installed so that binaries can be located!
@@ -107,10 +108,11 @@ pub fn native_install(
 pub fn native_uninstall(
     Json(input): Json<NativeUninstallInput>,
 ) -> FnResult<Json<NativeUninstallOutput>> {
-    exec_command!(ExecCommandInput::inherit(
+    exec_command!(
+        inherit,
         "rustup",
         ["toolchain", "uninstall", &input.context.version]
-    ));
+    );
 
     Ok(Json(NativeUninstallOutput { uninstalled: true }))
 }
