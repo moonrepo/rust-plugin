@@ -66,15 +66,11 @@ pub fn native_install(
     let env = get_proto_environment()?;
 
     // Check if rustup is installed
-    let result = exec_command!(
-        pipe,
-        if env.os == HostOS::Windows {
-            "Get-Command"
-        } else {
-            "which"
-        },
-        ["rustup"]
-    );
+    let result = if env.os == HostOS::Windows {
+        exec_command!(pipe, "powershell", ["-C", "Get-Command rustup"])
+    } else {
+        exec_command!(pipe, "which", ["rustup"])
+    };
 
     if result.exit_code != 0 || result.stdout.is_empty() {
         return err!(
