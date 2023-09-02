@@ -70,7 +70,7 @@ pub fn native_install(
         unsafe {
             exec_command(Json(ExecCommandInput::pipe(
                 "powershell",
-                ["-C", "Get-Command rustup"],
+                ["-Command", "Get-Command rustup"],
             )))
         }
     } else {
