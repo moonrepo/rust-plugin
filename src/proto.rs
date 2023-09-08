@@ -42,11 +42,13 @@ pub fn native_install(
         );
     }
 
-    let triple = format!(
-        "{}-{}",
-        input.context.version,
-        get_target_triple(&env, NAME)?
-    );
+    let channel = if input.context.version == "canary" {
+        "nightly"
+    } else {
+        &input.context.version
+    };
+
+    let triple = format!("{}-{}", channel, get_target_triple(&env, NAME)?);
 
     host_log!("Installing target \"{}\" with rustup", triple);
 
@@ -56,11 +58,7 @@ pub fn native_install(
     if installed_list.stdout.contains(&triple) {
         host_log!("Target already installed in toolchain");
     } else {
-        exec_command!(
-            inherit,
-            "rustup",
-            ["toolchain", "install", &input.context.version]
-        );
+        exec_command!(inherit, "rustup", ["toolchain", "install", channel]);
     }
 
     // Always mark as installed so that binaries can be located!
@@ -129,6 +127,8 @@ pub fn resolve_version(
     // Allow channels as explicit aliases
     if is_non_version_channel(&input.initial) {
         output.version = Some(input.initial);
+    } else if input.initial == "canary" {
+        output.version = Some("nightly".into());
     }
 
     Ok(Json(output))
