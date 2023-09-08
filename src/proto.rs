@@ -22,41 +22,11 @@ pub fn register_tool(Json(_): Json<ToolMetadataInput>) -> FnResult<Json<ToolMeta
         inventory: ToolInventoryMetadata {
             disable_progress_bars: true,
             override_dir: Some(env.home_dir.join(".rustup/toolchains")),
-            version_suffix: Some(format!("-{}", get_triple_target(&env)?)),
+            version_suffix: Some(format!("-{}", get_target_triple(&env, NAME)?)),
         },
         plugin_version: Some(env!("CARGO_PKG_VERSION").into()),
         ..ToolMetadataOutput::default()
     }))
-}
-
-fn is_musl() -> bool {
-    unsafe {
-        match exec_command(Json(ExecCommandInput::pipe("ldd", ["--version"]))) {
-            Ok(res) => res.0.stdout.contains("musl"),
-            Err(_) => false,
-        }
-    }
-}
-
-fn get_triple_target(env: &HostEnvironment) -> Result<String, PluginError> {
-    let arch = env.arch.to_rust_arch();
-
-    Ok(match &env.os {
-        HostOS::Linux => format!(
-            "{}-unknown-linux-{}",
-            arch,
-            if is_musl() { "musl" } else { "gnu" }
-        ),
-        HostOS::MacOS => format!("{}-apple-darwin", arch),
-        HostOS::Windows => format!("{}-pc-windows-msvc", arch),
-        _ => {
-            return Err(PluginError::UnsupportedTarget {
-                tool: NAME.into(),
-                arch: env.arch.to_string(),
-                os: env.os.to_string(),
-            })
-        }
-    })
 }
 
 #[plugin_fn]
@@ -66,24 +36,19 @@ pub fn native_install(
     let env = get_proto_environment()?;
 
     // Check if rustup is installed (returns `Err` otherwise)
-    let result = if env.os == HostOS::Windows {
-        unsafe {
-            exec_command(Json(ExecCommandInput::pipe(
-                "powershell",
-                ["-Command", "Get-Command rustup"],
-            )))
-        }
-    } else {
-        unsafe { exec_command(Json(ExecCommandInput::pipe("which", ["rustup"]))) }
-    };
-
-    if result.is_err() {
+    if !command_exists(&env, "rustup") {
         return err!(
-            "proto requires `rustup` to be installed and available on PATH to use Rust. Please install it and try again.".into()
+            "proto requires `rustup` to be installed and available on PATH to use Rust. Please install it and try again."
         );
     }
 
-    let triple = format!("{}-{}", input.context.version, get_triple_target(&env)?);
+    let channel = if input.context.version == "canary" {
+        "nightly"
+    } else {
+        &input.context.version
+    };
+
+    let triple = format!("{}-{}", channel, get_target_triple(&env, NAME)?);
 
     host_log!("Installing target \"{}\" with rustup", triple);
 
@@ -93,15 +58,14 @@ pub fn native_install(
     if installed_list.stdout.contains(&triple) {
         host_log!("Target already installed in toolchain");
     } else {
-        exec_command!(
-            inherit,
-            "rustup",
-            ["toolchain", "install", &input.context.version]
-        );
+        exec_command!(inherit, "rustup", ["toolchain", "install", channel]);
     }
 
     // Always mark as installed so that binaries can be located!
-    Ok(Json(NativeInstallOutput { installed: true }))
+    Ok(Json(NativeInstallOutput {
+        installed: true,
+        skip_install: false,
+    }))
 }
 
 #[plugin_fn]
@@ -114,7 +78,10 @@ pub fn native_uninstall(
         ["toolchain", "uninstall", &input.context.version]
     );
 
-    Ok(Json(NativeUninstallOutput { uninstalled: true }))
+    Ok(Json(NativeUninstallOutput {
+        uninstalled: true,
+        skip_uninstall: false,
+    }))
 }
 
 #[plugin_fn]
@@ -160,6 +127,8 @@ pub fn resolve_version(
     // Allow channels as explicit aliases
     if is_non_version_channel(&input.initial) {
         output.version = Some(input.initial);
+    } else if input.initial == "canary" {
+        output.version = Some("nightly".into());
     }
 
     Ok(Json(output))
@@ -222,7 +191,7 @@ pub fn uninstall_global(
 #[plugin_fn]
 pub fn sync_manifest(Json(_): Json<SyncManifestInput>) -> FnResult<Json<SyncManifestOutput>> {
     let env = get_proto_environment()?;
-    let triple = get_triple_target(&env)?;
+    let triple = get_target_triple(&env, NAME)?;
     let mut output = SyncManifestOutput::default();
     let mut versions = vec![];
 
