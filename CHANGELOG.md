@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.1
+
+#### 🐞 Fixes
+
+- Switched to `cargo` from `rustc` for bin detection.
+- Slightly improved logic that detects an installation.
+
+#### ⚙️ Internal
+
+- Updated dependencies.
+
 ## 0.2.0
 
 #### 🚀 Updates
