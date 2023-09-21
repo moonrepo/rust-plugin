@@ -55,7 +55,11 @@ pub fn native_install(
     // Install if not already installed
     let installed_list = exec_command!(pipe, "rustup", ["toolchain", "list"]);
 
-    if installed_list.stdout.contains(&triple) {
+    if installed_list
+        .stdout
+        .lines()
+        .any(|line| line.starts_with(&triple))
+    {
         host_log!("Target already installed in toolchain");
     } else {
         exec_command!(inherit, "rustup", ["toolchain", "install", channel]);
@@ -89,7 +93,7 @@ pub fn locate_bins(Json(_): Json<LocateBinsInput>) -> FnResult<Json<LocateBinsOu
     let env = get_proto_environment()?;
 
     Ok(Json(LocateBinsOutput {
-        bin_path: Some(format_bin_name("bin/rustc", env.os).into()),
+        bin_path: Some(format_bin_name("bin/cargo", env.os).into()),
         fallback_last_globals_dir: true,
         globals_lookup_dirs: vec![
             "$CARGO_INSTALL_ROOT/bin".into(),
@@ -107,7 +111,7 @@ pub fn load_versions(Json(_): Json<LoadVersionsInput>) -> FnResult<Json<LoadVers
     let tags = tags
         .iter()
         // Filter out old versions
-        .filter(|t| !t.ends_with("^{}") && !t.starts_with("release-") && !t.starts_with("0."))
+        .filter(|t| !t.starts_with("release-") && !t.starts_with("0."))
         .map(|t| t.to_owned())
         .collect::<Vec<_>>();
 
