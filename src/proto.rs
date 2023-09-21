@@ -53,17 +53,19 @@ pub fn native_install(
     host_log!("Installing target \"{}\" with rustup", triple);
 
     // Install if not already installed
-    let installed_list = exec_command!(pipe, "rustup", ["toolchain", "list"]);
+    // let installed_list = exec_command!(pipe, "rustup", ["toolchain", "list"]);
 
-    if installed_list
-        .stdout
-        .lines()
-        .any(|line| line.starts_with(&triple))
-    {
-        host_log!("Target already installed in toolchain");
-    } else {
-        exec_command!(inherit, "rustup", ["toolchain", "install", channel]);
-    }
+    // if installed_list
+    //     .stdout
+    //     .lines()
+    //     .any(|line| line.starts_with(&triple))
+    // {
+    //     host_log!("Target already installed in toolchain");
+    // } else {
+    //     exec_command!(inherit, "rustup", ["toolchain", "install", channel]);
+    // }
+
+    exec_command!(inherit, "rustup", ["toolchain", "install", channel]);
 
     // Always mark as installed so that binaries can be located!
     Ok(Json(NativeInstallOutput {

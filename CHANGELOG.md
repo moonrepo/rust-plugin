@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.2
+
+#### 🐞 Fixes
+
+- Temporary hack for "bin not found" errors.
+
 ## 0.2.1
 
 #### 🐞 Fixes
