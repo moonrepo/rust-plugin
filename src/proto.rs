@@ -64,7 +64,7 @@ pub fn native_install(
     // Always mark as installed so that binaries can be located!
     Ok(Json(NativeInstallOutput {
         installed: true,
-        skip_install: false,
+        ..NativeInstallOutput::default()
     }))
 }
 
@@ -80,7 +80,7 @@ pub fn native_uninstall(
 
     Ok(Json(NativeUninstallOutput {
         uninstalled: true,
-        skip_uninstall: false,
+        ..NativeUninstallOutput::default()
     }))
 }
 

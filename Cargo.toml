@@ -10,15 +10,18 @@ crate-type = ['cdylib']
 
 [dependencies]
 extism-pdk = "0.3.4"
-proto_pdk = { version = "0.7.1" } # , path = "../../proto/crates/pdk" }
+proto_pdk = { version = "0.7.3" } # , path = "../../proto/crates/pdk" }
 serde = "1.0.188"
-toml = "0.7.7"
+toml = "0.8.0"
 
 [dev-dependencies]
-proto_pdk_test_utils = { version = "0.6.2" } # , path = "../../proto/crates/pdk-test-utils" }
+proto_pdk_test_utils = { version = "0.7.1" } # , path = "../../proto/crates/pdk-test-utils" }
 starbase_sandbox = "0.1.10"
 tokio = "1.32.0"
 
 [profile.release]
 codegen-units = 1
+debug = false
 lto = true
+opt-level = "s"
+panic = "abort"
