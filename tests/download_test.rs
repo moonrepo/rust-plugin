@@ -24,7 +24,7 @@ fn locates_linux_bin() {
                 },
             })
             .bin_path,
-        Some("bin/rustc".into())
+        Some("bin/cargo".into())
     );
 }
 
@@ -48,7 +48,7 @@ fn locates_macos_bin() {
                 },
             })
             .bin_path,
-        Some("bin/rustc".into())
+        Some("bin/cargo".into())
     );
 }
 
@@ -72,6 +72,6 @@ fn locates_windows_bin() {
                 },
             })
             .bin_path,
-        Some("bin/rustc.exe".into())
+        Some("bin/cargo.exe".into())
     );
 }
