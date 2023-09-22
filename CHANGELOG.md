@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.3
+
+#### 🐞 Fixes
+
+- Fixed the "bin not found" errors by uninstalling the toolchain before installing it, if we've detected that it's in a broken state.
+
 ## 0.2.2
 
 #### 🐞 Fixes

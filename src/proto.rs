@@ -53,19 +53,35 @@ pub fn native_install(
     host_log!("Installing target \"{}\" with rustup", triple);
 
     // Install if not already installed
-    // let installed_list = exec_command!(pipe, "rustup", ["toolchain", "list"]);
+    let installed_list = exec_command!(pipe, "rustup", ["toolchain", "list"]);
+    let mut do_install = true;
 
-    // if installed_list
-    //     .stdout
-    //     .lines()
-    //     .any(|line| line.starts_with(&triple))
-    // {
-    //     host_log!("Target already installed in toolchain");
-    // } else {
-    //     exec_command!(inherit, "rustup", ["toolchain", "install", channel]);
-    // }
+    if installed_list
+        .stdout
+        .lines()
+        .any(|line| line.starts_with(&triple))
+    {
+        // Ensure the bins exist and that this isn't just an empty folder
+        if input.context.tool_dir.join("bin").exists() {
+            host_log!("Target already installed in toolchain");
 
-    exec_command!(inherit, "rustup", ["toolchain", "install", channel]);
+            do_install = false;
+
+        // Otherwise empty folders cause issues with rustup, so force uninstall it
+        } else {
+            host_log!("Detect a broken toolchain, uninstalling it");
+
+            exec_command!(inherit, "rustup", ["toolchain", "uninstall", channel]);
+        }
+    }
+
+    if do_install {
+        exec_command!(
+            inherit,
+            "rustup",
+            ["toolchain", "install", channel, "--force"]
+        );
+    }
 
     // Always mark as installed so that binaries can be located!
     Ok(Json(NativeInstallOutput {
