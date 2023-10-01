@@ -43,8 +43,38 @@ pub fn native_install(
 ) -> FnResult<Json<NativeInstallOutput>> {
     let env = get_proto_environment()?;
 
-    // Check if rustup is installed (returns `Err` otherwise)
+    // Install rustup if it does not exist
     if !command_exists(&env, "rustup") {
+        // host_log!("Installing rustup");
+
+        // NOTE: this won't work until proto v0.19.1, how to allow it otherwise???
+
+        // let is_windows = env.os.is_windows();
+        // let script_path = PathBuf::from("/proto/temp").join(if is_windows {
+        //     "rustup-init.exe"
+        // } else {
+        //     "rustup-init.sh"
+        // });
+
+        // if !script_path.exists() {
+        //     fs::write(
+        //         &script_path,
+        //         fetch_url_text(if is_windows {
+        //             "https://win.rustup.rs"
+        //         } else {
+        //             "https://sh.rustup.rs"
+        //         })?,
+        //     )?;
+        // }
+
+        // exec_command!(ExecCommandInput {
+        //     command: script_path.to_string_lossy().to_string(),
+        //     args: vec!["--default-toolchain".into(), "none".into(), "-y".into()],
+        //     set_executable: true,
+        //     stream: true,
+        //     ..ExecCommandInput::default()
+        // });
+
         return err!(
             "proto requires `rustup` to be installed and available on PATH to use Rust. Please install it and try again."
         );
