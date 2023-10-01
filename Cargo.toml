@@ -12,7 +12,7 @@ crate-type = ['cdylib']
 extism-pdk = "0.3.4"
 proto_pdk = { version = "0.7.7" } # , path = "../../proto/crates/pdk" }
 serde = "1.0.188"
-toml = "0.8.0"
+toml = "0.8.1"
 
 [dev-dependencies]
 proto_pdk_test_utils = { version = "0.8.0" } # , path = "../../proto/crates/pdk-test-utils" }

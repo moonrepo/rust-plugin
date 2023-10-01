@@ -6,6 +6,10 @@
 
 - Will now respect the `RUSTUP_HOME` environment variable when locating the `.rustup` store.
 
+#### ⚙️ Internal
+
+- Updated dependencies.
+
 ## 0.2.3
 
 #### 🐞 Fixes
