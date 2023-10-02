@@ -9,6 +9,7 @@
 #### 🐞 Fixes
 
 - Will now respect the `RUSTUP_HOME` environment variable when locating the `.rustup` store.
+- Fixed an issue where `sync_manifest` would fail if we didn't have read access to the rustup store.
 
 #### ⚙️ Internal
 

@@ -249,7 +249,12 @@ pub fn sync_manifest(Json(_): Json<SyncManifestInput>) -> FnResult<Json<SyncMani
     let mut output = SyncManifestOutput::default();
     let mut versions = vec![];
 
-    for dir in fs::read_dir(get_rustup_home(&env)?.join("toolchains"))? {
+    // Path may not be whitelisted, so exit early instead of failing
+    let Ok(dirs) = fs::read_dir(get_rustup_home(&env)?.join("toolchains")) else {
+        return Ok(Json(output));
+    };
+
+    for dir in dirs {
         let dir = dir?.path();
 
         if !dir.is_dir() {
