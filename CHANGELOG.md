@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.0
+
+#### 🐞 Fixes
+
+- Will now respect the `RUSTUP_HOME` environment variable when locating the `.rustup` store.
+
 ## 0.2.3
 
 #### 🐞 Fixes
