@@ -2,6 +2,10 @@
 
 ## 0.3.0
 
+#### 🚀 Updates
+
+- Will now attempt to install `rustup` if it does not exist on the current machine.
+
 #### 🐞 Fixes
 
 - Will now respect the `RUSTUP_HOME` environment variable when locating the `.rustup` store.
