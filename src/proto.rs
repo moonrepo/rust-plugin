@@ -2,14 +2,22 @@ use crate::toolchain_toml::ToolchainToml;
 use extism_pdk::*;
 use proto_pdk::*;
 use std::fs;
+use std::path::PathBuf;
 
 #[host_fn]
 extern "ExtismHost" {
     fn exec_command(input: Json<ExecCommandInput>) -> Json<ExecCommandOutput>;
+    fn get_env_var(name: &str) -> String;
     fn host_log(input: Json<HostLogInput>);
 }
 
 static NAME: &str = "Rust";
+
+fn get_rustup_home(env: &HostEnvironment) -> Result<PathBuf, Error> {
+    Ok(host_env!("RUSTUP_HOME")
+        .map(PathBuf::from)
+        .unwrap_or_else(|| env.home_dir.join(".rustup")))
+}
 
 #[plugin_fn]
 pub fn register_tool(Json(_): Json<ToolMetadataInput>) -> FnResult<Json<ToolMetadataOutput>> {
@@ -21,7 +29,7 @@ pub fn register_tool(Json(_): Json<ToolMetadataInput>) -> FnResult<Json<ToolMeta
         default_version: Some("stable".into()),
         inventory: ToolInventoryMetadata {
             disable_progress_bars: true,
-            override_dir: Some(env.home_dir.join(".rustup/toolchains")),
+            override_dir: Some(get_rustup_home(&env)?.join("toolchains")),
             version_suffix: Some(format!("-{}", get_target_triple(&env, NAME)?)),
         },
         plugin_version: Some(env!("CARGO_PKG_VERSION").into()),
@@ -69,7 +77,7 @@ pub fn native_install(
 
         // Otherwise empty folders cause issues with rustup, so force uninstall it
         } else {
-            host_log!("Detect a broken toolchain, uninstalling it");
+            host_log!("Detected a broken toolchain, uninstalling it");
 
             exec_command!(inherit, "rustup", ["toolchain", "uninstall", channel]);
         }
@@ -217,7 +225,7 @@ pub fn sync_manifest(Json(_): Json<SyncManifestInput>) -> FnResult<Json<SyncMani
     let mut output = SyncManifestOutput::default();
     let mut versions = vec![];
 
-    for dir in fs::read_dir(env.home_dir.join(".rustup/toolchains"))? {
+    for dir in fs::read_dir(get_rustup_home(&env)?.join("toolchains"))? {
         let dir = dir?.path();
 
         if !dir.is_dir() {
