@@ -16,7 +16,7 @@ static NAME: &str = "Rust";
 fn get_rustup_home(env: &HostEnvironment) -> Result<PathBuf, Error> {
     Ok(host_env!("RUSTUP_HOME")
         .map(|p| PathBuf::from(p))
-        .unwrap_or_else(|| env.home_dir.join(".rustup/toolchains")))
+        .unwrap_or_else(|| env.home_dir.join(".rustup")))
 }
 
 #[plugin_fn]
@@ -29,7 +29,7 @@ pub fn register_tool(Json(_): Json<ToolMetadataInput>) -> FnResult<Json<ToolMeta
         default_version: Some("stable".into()),
         inventory: ToolInventoryMetadata {
             disable_progress_bars: true,
-            override_dir: Some(get_rustup_home(&env)?),
+            override_dir: Some(get_rustup_home(&env)?.join("toolchains")),
             version_suffix: Some(format!("-{}", get_target_triple(&env, NAME)?)),
         },
         plugin_version: Some(env!("CARGO_PKG_VERSION").into()),
@@ -225,7 +225,7 @@ pub fn sync_manifest(Json(_): Json<SyncManifestInput>) -> FnResult<Json<SyncMani
     let mut output = SyncManifestOutput::default();
     let mut versions = vec![];
 
-    for dir in fs::read_dir(get_rustup_home(&env)?.join("/toolchains"))? {
+    for dir in fs::read_dir(get_rustup_home(&env)?.join("toolchains"))? {
         let dir = dir?.path();
 
         if !dir.is_dir() {
