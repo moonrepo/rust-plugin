@@ -15,7 +15,7 @@ static NAME: &str = "Rust";
 
 fn get_rustup_home(env: &HostEnvironment) -> Result<PathBuf, Error> {
     Ok(host_env!("RUSTUP_HOME")
-        .map(|p| PathBuf::from(p))
+        .map(PathBuf::from)
         .unwrap_or_else(|| env.home_dir.join(".rustup")))
 }
 
