@@ -5,6 +5,7 @@
 #### 🚀 Updates
 
 - Will now attempt to install `rustup` if it does not exist on the current machine.
+- Updated to support proto v0.20 release.
 
 #### 🐞 Fixes
 
