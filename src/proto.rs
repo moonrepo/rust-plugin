@@ -14,9 +14,11 @@ extern "ExtismHost" {
 static NAME: &str = "Rust";
 
 fn get_rustup_home(env: &HostEnvironment) -> Result<PathBuf, Error> {
+    // Variable returns a real path
     Ok(host_env!("RUSTUP_HOME")
         .map(PathBuf::from)
-        .unwrap_or_else(|| env.home_dir.join(".rustup")))
+        // So we need our fallback to also be a real path
+        .unwrap_or_else(|| env.home_dir.real_path().join(".rustup")))
 }
 
 #[plugin_fn]

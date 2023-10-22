@@ -2336,7 +2336,7 @@ dependencies = [
 
 [[package]]
 name = "rust_plugin"
-version = "0.3.0"
+version = "0.3.1"
 dependencies = [
  "extism-pdk",
  "proto_pdk",

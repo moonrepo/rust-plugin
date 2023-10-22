@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.1
+
+#### 🐞 Fixes
+
+- Fixed an issue where `RUSTUP_HOME` would not respect virtual paths.
+
 ## 0.3.0
 
 #### 🚀 Updates
