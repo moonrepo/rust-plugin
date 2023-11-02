@@ -1,3 +1,4 @@
+use crate::helpers::*;
 use crate::toolchain_toml::ToolchainToml;
 use extism_pdk::*;
 use proto_pdk::*;
@@ -7,19 +8,10 @@ use std::path::PathBuf;
 #[host_fn]
 extern "ExtismHost" {
     fn exec_command(input: Json<ExecCommandInput>) -> Json<ExecCommandOutput>;
-    fn get_env_var(name: &str) -> String;
     fn host_log(input: Json<HostLogInput>);
 }
 
 static NAME: &str = "Rust";
-
-fn get_rustup_home(env: &HostEnvironment) -> Result<PathBuf, Error> {
-    // Variable returns a real path
-    Ok(host_env!("RUSTUP_HOME")
-        .map(PathBuf::from)
-        // So we need our fallback to also be a real path
-        .unwrap_or_else(|| env.home_dir.real_path().join(".rustup")))
-}
 
 #[plugin_fn]
 pub fn register_tool(Json(_): Json<ToolMetadataInput>) -> FnResult<Json<ToolMetadataOutput>> {
@@ -28,7 +20,7 @@ pub fn register_tool(Json(_): Json<ToolMetadataInput>) -> FnResult<Json<ToolMeta
     Ok(Json(ToolMetadataOutput {
         name: NAME.into(),
         type_of: PluginType::Language,
-        default_version: Some("stable".into()),
+        default_version: Some(UnresolvedVersionSpec::Alias("stable".into())),
         inventory: ToolInventoryMetadata {
             disable_progress_bars: true,
             override_dir: Some(get_rustup_home(&env)?.join("toolchains")),
@@ -76,11 +68,8 @@ pub fn native_install(
         });
     }
 
-    let channel = if input.context.version == "canary" {
-        "nightly"
-    } else {
-        &input.context.version
-    };
+    let version = &input.context.version;
+    let channel = get_channel_from_version(version);
 
     let triple = format!("{}-{}", channel, get_target_triple(&env, NAME)?);
 
@@ -105,7 +94,7 @@ pub fn native_install(
         } else {
             host_log!("Detected a broken toolchain, uninstalling it");
 
-            exec_command!(inherit, "rustup", ["toolchain", "uninstall", channel]);
+            exec_command!(inherit, "rustup", ["toolchain", "uninstall", &channel]);
         }
     }
 
@@ -113,7 +102,7 @@ pub fn native_install(
         exec_command!(
             inherit,
             "rustup",
-            ["toolchain", "install", channel, "--force"]
+            ["toolchain", "install", &channel, "--force"]
         );
     }
 
@@ -128,11 +117,9 @@ pub fn native_install(
 pub fn native_uninstall(
     Json(input): Json<NativeUninstallInput>,
 ) -> FnResult<Json<NativeUninstallOutput>> {
-    exec_command!(
-        inherit,
-        "rustup",
-        ["toolchain", "uninstall", &input.context.version]
-    );
+    let channel = get_channel_from_version(&input.context.version);
+
+    exec_command!(inherit, "rustup", ["toolchain", "uninstall", &channel]);
 
     Ok(Json(NativeUninstallOutput {
         uninstalled: true,
@@ -170,10 +157,6 @@ pub fn load_versions(Json(_): Json<LoadVersionsInput>) -> FnResult<Json<LoadVers
     Ok(Json(LoadVersionsOutput::from(tags)?))
 }
 
-fn is_non_version_channel(value: &str) -> bool {
-    value == "stable" || value == "beta" || value == "nightly" || value.starts_with("nightly")
-}
-
 #[plugin_fn]
 pub fn resolve_version(
     Json(input): Json<ResolveVersionInput>,
@@ -182,9 +165,9 @@ pub fn resolve_version(
 
     // Allow channels as explicit aliases
     if is_non_version_channel(&input.initial) {
-        output.version = Some(input.initial);
-    } else if input.initial == "canary" {
-        output.version = Some("nightly".into());
+        output.version = Some(VersionSpec::Alias(input.initial.into()));
+    } else if input.initial.is_canary() {
+        output.version = Some(VersionSpec::Alias("nightly".into()));
     }
 
     Ok(Json(output))
@@ -205,13 +188,13 @@ pub fn parse_version_file(
 
     if input.file == "rust-toolchain" {
         if !input.content.is_empty() {
-            output.version = Some(input.content);
+            output.version = Some(UnresolvedVersionSpec::parse(input.content)?);
         }
     } else if input.file == "rust-toolchain.toml" {
         let config: ToolchainToml = toml::from_str(&input.content)?;
 
         if let Some(channel) = config.toolchain.channel {
-            output.version = Some(channel);
+            output.version = Some(UnresolvedVersionSpec::parse(channel)?);
         }
     }
 
@@ -269,13 +252,15 @@ pub fn sync_manifest(Json(_): Json<SyncManifestInput>) -> FnResult<Json<SyncMani
             continue;
         }
 
-        let name = name.replace(&format!("-{triple}"), "");
+        let spec = UnresolvedVersionSpec::parse(name.replace(&format!("-{triple}"), ""))?;
 
-        if is_non_version_channel(&name) {
+        if is_non_version_channel(&spec) {
             continue;
         }
 
-        versions.push(Version::parse(&name)?);
+        if let UnresolvedVersionSpec::Version(version) = spec {
+            versions.push(version);
+        }
     }
 
     if !versions.is_empty() {
