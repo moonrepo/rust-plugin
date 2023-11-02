@@ -1,3 +1,4 @@
+use crate::helpers::*;
 use crate::toolchain_toml::ToolchainToml;
 use extism_pdk::*;
 use proto_pdk::*;
@@ -7,19 +8,10 @@ use std::path::PathBuf;
 #[host_fn]
 extern "ExtismHost" {
     fn exec_command(input: Json<ExecCommandInput>) -> Json<ExecCommandOutput>;
-    fn get_env_var(name: &str) -> String;
     fn host_log(input: Json<HostLogInput>);
 }
 
 static NAME: &str = "Rust";
-
-fn get_rustup_home(env: &HostEnvironment) -> Result<PathBuf, Error> {
-    // Variable returns a real path
-    Ok(host_env!("RUSTUP_HOME")
-        .map(PathBuf::from)
-        // So we need our fallback to also be a real path
-        .unwrap_or_else(|| env.home_dir.real_path().join(".rustup")))
-}
 
 #[plugin_fn]
 pub fn register_tool(Json(_): Json<ToolMetadataInput>) -> FnResult<Json<ToolMetadataOutput>> {
@@ -37,27 +29,6 @@ pub fn register_tool(Json(_): Json<ToolMetadataInput>) -> FnResult<Json<ToolMeta
         plugin_version: Some(env!("CARGO_PKG_VERSION").into()),
         ..ToolMetadataOutput::default()
     }))
-}
-
-fn get_channel_from_version(spec: &VersionSpec) -> String {
-    if spec.is_canary() {
-        "nightly".to_owned()
-    } else {
-        spec.to_string()
-    }
-}
-
-fn is_non_version_channel(spec: &UnresolvedVersionSpec) -> bool {
-    match spec {
-        UnresolvedVersionSpec::Canary => true,
-        UnresolvedVersionSpec::Alias(value) => {
-            value == "stable"
-                || value == "beta"
-                || value == "nightly"
-                || value.starts_with("nightly")
-        }
-        _ => false,
-    }
 }
 
 #[plugin_fn]

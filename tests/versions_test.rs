@@ -42,7 +42,7 @@ fn parses_rust_toolchain() {
             file: "rust-toolchain".into(),
         }),
         ParseVersionFileOutput {
-            version: Some("1.60.0".into()),
+            version: Some(UnresolvedVersionSpec::parse("1.60.0").unwrap()),
         }
     );
 }
@@ -72,7 +72,7 @@ fn parses_rust_toolchain_toml() {
             file: "rust-toolchain.toml".into(),
         }),
         ParseVersionFileOutput {
-            version: Some("1.70.0".into()),
+            version: Some(UnresolvedVersionSpec::parse("1.70.0").unwrap()),
         }
     );
 }

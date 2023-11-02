@@ -19,7 +19,7 @@ fn locates_linux_bin() {
         plugin
             .locate_bins(LocateBinsInput {
                 context: ToolContext {
-                    version: "1.69.0".into(),
+                    version: VersionSpec::parse("1.69.0").unwrap(),
                     ..Default::default()
                 },
             })
@@ -43,7 +43,7 @@ fn locates_macos_bin() {
         plugin
             .locate_bins(LocateBinsInput {
                 context: ToolContext {
-                    version: "1.69.0".into(),
+                    version: VersionSpec::parse("1.69.0").unwrap(),
                     ..Default::default()
                 },
             })
@@ -67,7 +67,7 @@ fn locates_windows_bin() {
         plugin
             .locate_bins(LocateBinsInput {
                 context: ToolContext {
-                    version: "1.69.0".into(),
+                    version: VersionSpec::parse("1.69.0").unwrap(),
                     ..Default::default()
                 },
             })

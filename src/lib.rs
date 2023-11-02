@@ -4,6 +4,9 @@ mod toolchain_toml;
 // WASM code for non-WASM targets. We can solve both of these with a cfg flag.
 
 #[cfg(not(test))]
+mod helpers;
+
+#[cfg(not(test))]
 mod proto;
 
 #[cfg(not(test))]
