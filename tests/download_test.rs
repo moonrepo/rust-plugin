@@ -17,13 +17,15 @@ fn locates_linux_bin() {
 
     assert_eq!(
         plugin
-            .locate_bins(LocateBinsInput {
+            .locate_executables(LocateExecutablesInput {
                 context: ToolContext {
                     version: VersionSpec::parse("1.69.0").unwrap(),
                     ..Default::default()
                 },
             })
-            .bin_path,
+            .primary
+            .unwrap()
+            .exe_path,
         Some("bin/cargo".into())
     );
 }
@@ -41,13 +43,15 @@ fn locates_macos_bin() {
 
     assert_eq!(
         plugin
-            .locate_bins(LocateBinsInput {
+            .locate_executables(LocateExecutablesInput {
                 context: ToolContext {
                     version: VersionSpec::parse("1.69.0").unwrap(),
                     ..Default::default()
                 },
             })
-            .bin_path,
+            .primary
+            .unwrap()
+            .exe_path,
         Some("bin/cargo".into())
     );
 }
@@ -65,13 +69,15 @@ fn locates_windows_bin() {
 
     assert_eq!(
         plugin
-            .locate_bins(LocateBinsInput {
+            .locate_executables(LocateExecutablesInput {
                 context: ToolContext {
                     version: VersionSpec::parse("1.69.0").unwrap(),
                     ..Default::default()
                 },
             })
-            .bin_path,
+            .primary
+            .unwrap()
+            .exe_path,
         Some("bin/cargo.exe".into())
     );
 }

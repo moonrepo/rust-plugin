@@ -32,6 +32,64 @@ pub fn register_tool(Json(_): Json<ToolMetadataInput>) -> FnResult<Json<ToolMeta
 }
 
 #[plugin_fn]
+pub fn load_versions(Json(_): Json<LoadVersionsInput>) -> FnResult<Json<LoadVersionsOutput>> {
+    let tags = load_git_tags("https://github.com/rust-lang/rust")?;
+
+    let tags = tags
+        .iter()
+        // Filter out old versions
+        .filter(|t| !t.starts_with("release-") && !t.starts_with("0."))
+        .map(|t| t.to_owned())
+        .collect::<Vec<_>>();
+
+    Ok(Json(LoadVersionsOutput::from(tags)?))
+}
+
+#[plugin_fn]
+pub fn resolve_version(
+    Json(input): Json<ResolveVersionInput>,
+) -> FnResult<Json<ResolveVersionOutput>> {
+    let mut output = ResolveVersionOutput::default();
+
+    // Allow channels as explicit aliases
+    if is_non_version_channel(&input.initial) {
+        output.version = Some(VersionSpec::Alias(input.initial.into()));
+    } else if input.initial.is_canary() {
+        output.version = Some(VersionSpec::Alias("nightly".into()));
+    }
+
+    Ok(Json(output))
+}
+
+#[plugin_fn]
+pub fn detect_version_files(_: ()) -> FnResult<Json<DetectVersionOutput>> {
+    Ok(Json(DetectVersionOutput {
+        files: vec!["rust-toolchain.toml".into(), "rust-toolchain".into()],
+    }))
+}
+
+#[plugin_fn]
+pub fn parse_version_file(
+    Json(input): Json<ParseVersionFileInput>,
+) -> FnResult<Json<ParseVersionFileOutput>> {
+    let mut output = ParseVersionFileOutput::default();
+
+    if input.file == "rust-toolchain" {
+        if !input.content.is_empty() {
+            output.version = Some(UnresolvedVersionSpec::parse(input.content)?);
+        }
+    } else if input.file == "rust-toolchain.toml" {
+        let config: ToolchainToml = toml::from_str(&input.content)?;
+
+        if let Some(channel) = config.toolchain.channel {
+            output.version = Some(UnresolvedVersionSpec::parse(channel)?);
+        }
+    }
+
+    Ok(Json(output))
+}
+
+#[plugin_fn]
 pub fn native_install(
     Json(input): Json<NativeInstallInput>,
 ) -> FnResult<Json<NativeInstallOutput>> {
@@ -128,84 +186,27 @@ pub fn native_uninstall(
 }
 
 #[plugin_fn]
-pub fn locate_bins(Json(_): Json<LocateBinsInput>) -> FnResult<Json<LocateBinsOutput>> {
+pub fn locate_executables(
+    Json(_): Json<LocateExecutablesInput>,
+) -> FnResult<Json<LocateExecutablesOutput>> {
     let env = get_proto_environment()?;
 
-    Ok(Json(LocateBinsOutput {
-        bin_path: Some(format_bin_name("bin/cargo", env.os).into()),
-        fallback_last_globals_dir: true,
+    // Binaries are provided by Cargo (`~/.cargo/bin`), so don't create
+    // our own shim and bin. But we do need to ensure that the install
+    // worked, so we still check for the `cargo` binary.
+    let mut primary = ExecutableConfig::new(format_bin_name("bin/cargo", env.os));
+    primary.no_bin = true;
+    primary.no_shim = true;
+
+    Ok(Json(LocateExecutablesOutput {
         globals_lookup_dirs: vec![
             "$CARGO_INSTALL_ROOT/bin".into(),
             "$CARGO_HOME/bin".into(),
             "$HOME/.cargo/bin".into(),
         ],
         globals_prefix: Some("cargo-".into()),
-    }))
-}
-
-#[plugin_fn]
-pub fn load_versions(Json(_): Json<LoadVersionsInput>) -> FnResult<Json<LoadVersionsOutput>> {
-    let tags = load_git_tags("https://github.com/rust-lang/rust")?;
-
-    let tags = tags
-        .iter()
-        // Filter out old versions
-        .filter(|t| !t.starts_with("release-") && !t.starts_with("0."))
-        .map(|t| t.to_owned())
-        .collect::<Vec<_>>();
-
-    Ok(Json(LoadVersionsOutput::from(tags)?))
-}
-
-#[plugin_fn]
-pub fn resolve_version(
-    Json(input): Json<ResolveVersionInput>,
-) -> FnResult<Json<ResolveVersionOutput>> {
-    let mut output = ResolveVersionOutput::default();
-
-    // Allow channels as explicit aliases
-    if is_non_version_channel(&input.initial) {
-        output.version = Some(VersionSpec::Alias(input.initial.into()));
-    } else if input.initial.is_canary() {
-        output.version = Some(VersionSpec::Alias("nightly".into()));
-    }
-
-    Ok(Json(output))
-}
-
-#[plugin_fn]
-pub fn detect_version_files(_: ()) -> FnResult<Json<DetectVersionOutput>> {
-    Ok(Json(DetectVersionOutput {
-        files: vec!["rust-toolchain.toml".into(), "rust-toolchain".into()],
-    }))
-}
-
-#[plugin_fn]
-pub fn parse_version_file(
-    Json(input): Json<ParseVersionFileInput>,
-) -> FnResult<Json<ParseVersionFileOutput>> {
-    let mut output = ParseVersionFileOutput::default();
-
-    if input.file == "rust-toolchain" {
-        if !input.content.is_empty() {
-            output.version = Some(UnresolvedVersionSpec::parse(input.content)?);
-        }
-    } else if input.file == "rust-toolchain.toml" {
-        let config: ToolchainToml = toml::from_str(&input.content)?;
-
-        if let Some(channel) = config.toolchain.channel {
-            output.version = Some(UnresolvedVersionSpec::parse(channel)?);
-        }
-    }
-
-    Ok(Json(output))
-}
-
-#[plugin_fn]
-pub fn create_shims(Json(_): Json<CreateShimsInput>) -> FnResult<Json<CreateShimsOutput>> {
-    Ok(Json(CreateShimsOutput {
-        no_primary_global: true,
-        ..CreateShimsOutput::default()
+        primary: Some(primary),
+        ..LocateExecutablesOutput::default()
     }))
 }
 
@@ -268,4 +269,31 @@ pub fn sync_manifest(Json(_): Json<SyncManifestInput>) -> FnResult<Json<SyncMani
     }
 
     Ok(Json(output))
+}
+
+// DEPRECATED
+// Removed in v0.23!
+
+#[plugin_fn]
+pub fn locate_bins(Json(_): Json<LocateBinsInput>) -> FnResult<Json<LocateBinsOutput>> {
+    let env = get_proto_environment()?;
+
+    Ok(Json(LocateBinsOutput {
+        bin_path: Some(format_bin_name("bin/cargo", env.os).into()),
+        fallback_last_globals_dir: true,
+        globals_lookup_dirs: vec![
+            "$CARGO_INSTALL_ROOT/bin".into(),
+            "$CARGO_HOME/bin".into(),
+            "$HOME/.cargo/bin".into(),
+        ],
+        globals_prefix: Some("cargo-".into()),
+    }))
+}
+
+#[plugin_fn]
+pub fn create_shims(Json(_): Json<CreateShimsInput>) -> FnResult<Json<CreateShimsOutput>> {
+    Ok(Json(CreateShimsOutput {
+        no_primary_global: true,
+        ..CreateShimsOutput::default()
+    }))
 }
