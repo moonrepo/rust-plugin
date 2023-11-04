@@ -194,7 +194,7 @@ pub fn locate_executables(
     // Binaries are provided by Cargo (`~/.cargo/bin`), so don't create
     // our own shim and bin. But we do need to ensure that the install
     // worked, so we still check for the `cargo` binary.
-    let mut primary = ExecutableConfig::new(format_bin_name("bin/cargo", env.os));
+    let mut primary = ExecutableConfig::new(env.os.get_exe_name("bin/cargo"));
     primary.no_bin = true;
     primary.no_shim = true;
 
@@ -279,7 +279,7 @@ pub fn locate_bins(Json(_): Json<LocateBinsInput>) -> FnResult<Json<LocateBinsOu
     let env = get_proto_environment()?;
 
     Ok(Json(LocateBinsOutput {
-        bin_path: Some(format_bin_name("bin/cargo", env.os).into()),
+        bin_path: Some(env.os.get_exe_name("bin/cargo").into()),
         fallback_last_globals_dir: true,
         globals_lookup_dirs: vec![
             "$CARGO_INSTALL_ROOT/bin".into(),
