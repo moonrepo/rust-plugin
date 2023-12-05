@@ -6,6 +6,10 @@
 
 - Updated to support proto v0.24 release.
 
+#### 🐞 Fixes
+
+- Fixed auto-install of rustup not working on Windows.
+
 #### ⚙️ Internal
 
 - Updated dependencies.

@@ -110,11 +110,15 @@ pub fn native_install(
         if !script_path.exists() {
             fs::write(
                 &script_path,
-                fetch_url_text(if is_windows {
-                    "https://win.rustup.rs"
-                } else {
-                    "https://sh.rustup.rs"
-                })?,
+                fetch(
+                    HttpRequest::new(if is_windows {
+                        "https://win.rustup.rs"
+                    } else {
+                        "https://sh.rustup.rs"
+                    }),
+                    None,
+                )?
+                .body(),
             )?;
         }
 
