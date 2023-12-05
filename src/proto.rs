@@ -65,6 +65,7 @@ pub fn resolve_version(
 pub fn detect_version_files(_: ()) -> FnResult<Json<DetectVersionOutput>> {
     Ok(Json(DetectVersionOutput {
         files: vec!["rust-toolchain.toml".into(), "rust-toolchain".into()],
+        ignore: vec![],
     }))
 }
 
