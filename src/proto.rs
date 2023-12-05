@@ -65,6 +65,7 @@ pub fn resolve_version(
 pub fn detect_version_files(_: ()) -> FnResult<Json<DetectVersionOutput>> {
     Ok(Json(DetectVersionOutput {
         files: vec!["rust-toolchain.toml".into(), "rust-toolchain".into()],
+        ignore: vec![],
     }))
 }
 
@@ -109,11 +110,15 @@ pub fn native_install(
         if !script_path.exists() {
             fs::write(
                 &script_path,
-                fetch_url_text(if is_windows {
-                    "https://win.rustup.rs"
-                } else {
-                    "https://sh.rustup.rs"
-                })?,
+                fetch(
+                    HttpRequest::new(if is_windows {
+                        "https://win.rustup.rs"
+                    } else {
+                        "https://sh.rustup.rs"
+                    }),
+                    None,
+                )?
+                .body(),
             )?;
         }
 

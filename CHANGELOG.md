@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.5.0
+
+#### 🚀 Updates
+
+- Updated to support proto v0.24 release.
+
+#### 🐞 Fixes
+
+- Fixed auto-install of rustup not working on Windows.
+
+#### ⚙️ Internal
+
+- Updated dependencies.
+
 ## 0.4.0
 
 #### 🚀 Updates
