@@ -1,5 +1,6 @@
 use proto_pdk_test_utils::*;
 use starbase_sandbox::create_empty_sandbox;
+use std::collections::HashMap;
 
 // We use a fake home directory but rustup requires a real one!
 // generate_download_install_tests!("rust-test", "1.70.0");
@@ -7,13 +8,11 @@ use starbase_sandbox::create_empty_sandbox;
 #[test]
 fn locates_linux_bin() {
     let sandbox = create_empty_sandbox();
-    let mut plugin = create_plugin("rust-test", sandbox.path());
-
-    plugin.set_environment(HostEnvironment {
-        arch: HostArch::Arm64,
-        os: HostOS::Linux,
-        ..Default::default()
-    });
+    let plugin = create_plugin_with_config(
+        "rust-test",
+        sandbox.path(),
+        HashMap::from_iter([map_config_environment(HostOS::Linux, HostArch::Arm64)]),
+    );
 
     assert_eq!(
         plugin
@@ -33,13 +32,11 @@ fn locates_linux_bin() {
 #[test]
 fn locates_macos_bin() {
     let sandbox = create_empty_sandbox();
-    let mut plugin = create_plugin("rust-test", sandbox.path());
-
-    plugin.set_environment(HostEnvironment {
-        arch: HostArch::X64,
-        os: HostOS::MacOS,
-        ..Default::default()
-    });
+    let plugin = create_plugin_with_config(
+        "rust-test",
+        sandbox.path(),
+        HashMap::from_iter([map_config_environment(HostOS::MacOS, HostArch::X64)]),
+    );
 
     assert_eq!(
         plugin
@@ -59,13 +56,11 @@ fn locates_macos_bin() {
 #[test]
 fn locates_windows_bin() {
     let sandbox = create_empty_sandbox();
-    let mut plugin = create_plugin("rust-test", sandbox.path());
-
-    plugin.set_environment(HostEnvironment {
-        arch: HostArch::X86,
-        os: HostOS::Windows,
-        ..Default::default()
-    });
+    let plugin = create_plugin_with_config(
+        "rust-test",
+        sandbox.path(),
+        HashMap::from_iter([map_config_environment(HostOS::Windows, HostArch::X86)]),
+    );
 
     assert_eq!(
         plugin
