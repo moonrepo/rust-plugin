@@ -37,9 +37,14 @@ pub fn load_versions(Json(_): Json<LoadVersionsInput>) -> FnResult<Json<LoadVers
 
     let tags = tags
         .iter()
-        // Filter out old versions
-        .filter(|t| !t.starts_with("release-") && !t.starts_with("0."))
-        .map(|t| t.to_owned())
+        .filter_map(|tag| {
+            // Filter out old versions
+            if tag.starts_with("release-") || tag.starts_with("0.") {
+                None
+            } else {
+                Some(tag.to_owned())
+            }
+        })
         .collect::<Vec<_>>();
 
     Ok(Json(LoadVersionsOutput::from(tags)?))
@@ -258,7 +263,9 @@ pub fn sync_manifest(Json(_): Json<SyncManifestInput>) -> FnResult<Json<SyncMani
             continue;
         }
 
-        let spec = UnresolvedVersionSpec::parse(name.replace(&format!("-{triple}"), ""))?;
+        let Ok(spec) = UnresolvedVersionSpec::parse(name.replace(&format!("-{triple}"), "")) else {
+            continue;
+        };
 
         if is_non_version_channel(&spec) {
             continue;
@@ -274,31 +281,4 @@ pub fn sync_manifest(Json(_): Json<SyncManifestInput>) -> FnResult<Json<SyncMani
     }
 
     Ok(Json(output))
-}
-
-// DEPRECATED
-// Removed in v0.23!
-
-#[plugin_fn]
-pub fn locate_bins(Json(_): Json<LocateBinsInput>) -> FnResult<Json<LocateBinsOutput>> {
-    let env = get_proto_environment()?;
-
-    Ok(Json(LocateBinsOutput {
-        bin_path: Some(env.os.get_exe_name("bin/cargo").into()),
-        fallback_last_globals_dir: true,
-        globals_lookup_dirs: vec![
-            "$CARGO_INSTALL_ROOT/bin".into(),
-            "$CARGO_HOME/bin".into(),
-            "$HOME/.cargo/bin".into(),
-        ],
-        globals_prefix: Some("cargo-".into()),
-    }))
-}
-
-#[plugin_fn]
-pub fn create_shims(Json(_): Json<CreateShimsInput>) -> FnResult<Json<CreateShimsOutput>> {
-    Ok(Json(CreateShimsOutput {
-        no_primary_global: true,
-        ..CreateShimsOutput::default()
-    }))
 }
