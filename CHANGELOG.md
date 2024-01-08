@@ -11,6 +11,10 @@
 - Updated to support proto v0.28 release.
 - Updated to extism-pdk v1.
 
+#### 🐞 Fixes
+
+- Fixed manifest syncing referencing an invalid path.
+
 ## 0.6.0
 
 #### 🚀 Updates

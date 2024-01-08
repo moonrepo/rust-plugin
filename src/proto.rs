@@ -9,6 +9,7 @@ use std::path::PathBuf;
 extern "ExtismHost" {
     fn exec_command(input: Json<ExecCommandInput>) -> Json<ExecCommandOutput>;
     fn host_log(input: Json<HostLogInput>);
+    fn to_virtual_path(input: String) -> String;
 }
 
 static NAME: &str = "Rust";
@@ -246,7 +247,9 @@ pub fn sync_manifest(Json(_): Json<SyncManifestInput>) -> FnResult<Json<SyncMani
     let mut versions = vec![];
 
     // Path may not be whitelisted, so exit early instead of failing
-    let Ok(dirs) = fs::read_dir(get_rustup_home(&env)?.join("toolchains")) else {
+    let toolchain_dir = virtual_path!(get_rustup_home(&env)?.join("toolchains").to_string_lossy());
+
+    let Ok(dirs) = fs::read_dir(toolchain_dir) else {
         return Ok(Json(output));
     };
 
