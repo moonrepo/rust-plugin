@@ -9,6 +9,7 @@ use std::path::PathBuf;
 extern "ExtismHost" {
     fn exec_command(input: Json<ExecCommandInput>) -> Json<ExecCommandOutput>;
     fn host_log(input: Json<HostLogInput>);
+    fn to_virtual_path(input: String) -> String;
 }
 
 static NAME: &str = "Rust";
@@ -37,9 +38,14 @@ pub fn load_versions(Json(_): Json<LoadVersionsInput>) -> FnResult<Json<LoadVers
 
     let tags = tags
         .iter()
-        // Filter out old versions
-        .filter(|t| !t.starts_with("release-") && !t.starts_with("0."))
-        .map(|t| t.to_owned())
+        .filter_map(|tag| {
+            // Filter out old versions
+            if tag.starts_with("release-") || tag.starts_with("0.") {
+                None
+            } else {
+                Some(tag.to_owned())
+            }
+        })
         .collect::<Vec<_>>();
 
     Ok(Json(LoadVersionsOutput::from(tags)?))
@@ -241,7 +247,9 @@ pub fn sync_manifest(Json(_): Json<SyncManifestInput>) -> FnResult<Json<SyncMani
     let mut versions = vec![];
 
     // Path may not be whitelisted, so exit early instead of failing
-    let Ok(dirs) = fs::read_dir(get_rustup_home(&env)?.join("toolchains")) else {
+    let toolchain_dir = virtual_path!(get_rustup_home(&env)?.join("toolchains").to_string_lossy());
+
+    let Ok(dirs) = fs::read_dir(toolchain_dir) else {
         return Ok(Json(output));
     };
 
@@ -258,7 +266,9 @@ pub fn sync_manifest(Json(_): Json<SyncManifestInput>) -> FnResult<Json<SyncMani
             continue;
         }
 
-        let spec = UnresolvedVersionSpec::parse(name.replace(&format!("-{triple}"), ""))?;
+        let Ok(spec) = UnresolvedVersionSpec::parse(name.replace(&format!("-{triple}"), "")) else {
+            continue;
+        };
 
         if is_non_version_channel(&spec) {
             continue;
@@ -274,31 +284,4 @@ pub fn sync_manifest(Json(_): Json<SyncManifestInput>) -> FnResult<Json<SyncMani
     }
 
     Ok(Json(output))
-}
-
-// DEPRECATED
-// Removed in v0.23!
-
-#[plugin_fn]
-pub fn locate_bins(Json(_): Json<LocateBinsInput>) -> FnResult<Json<LocateBinsOutput>> {
-    let env = get_proto_environment()?;
-
-    Ok(Json(LocateBinsOutput {
-        bin_path: Some(env.os.get_exe_name("bin/cargo").into()),
-        fallback_last_globals_dir: true,
-        globals_lookup_dirs: vec![
-            "$CARGO_INSTALL_ROOT/bin".into(),
-            "$CARGO_HOME/bin".into(),
-            "$HOME/.cargo/bin".into(),
-        ],
-        globals_prefix: Some("cargo-".into()),
-    }))
-}
-
-#[plugin_fn]
-pub fn create_shims(Json(_): Json<CreateShimsInput>) -> FnResult<Json<CreateShimsOutput>> {
-    Ok(Json(CreateShimsOutput {
-        no_primary_global: true,
-        ..CreateShimsOutput::default()
-    }))
 }
