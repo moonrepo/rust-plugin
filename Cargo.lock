@@ -2010,9 +2010,9 @@ dependencies = [
 
 [[package]]
 name = "proto_core"
-version = "0.28.2"
+version = "0.28.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "29890bd951233870c64d9de86afcd0f0bbb2baddbc74994ef4e92e4205ba7fa9"
+checksum = "f98f4d8c7ddca198d1ff3312af5d0601e6eebe034d9ed361a17755f0cf794805"
 dependencies = [
  "cached",
  "extism",
@@ -2044,9 +2044,9 @@ dependencies = [
 
 [[package]]
 name = "proto_pdk"
-version = "0.14.2"
+version = "0.14.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "448c156bf0f7ce1efb0c14fbd4b370c6adb583bce39084f7bea2d70776b9ef4e"
+checksum = "196242890db199cc216ddc3eecad6a7ab264581721e17c43dfb198c8d3d46ae9"
 dependencies = [
  "anyhow",
  "extism-pdk",
@@ -3333,9 +3333,9 @@ dependencies = [
 
 [[package]]
 name = "warpgate"
-version = "0.9.1"
+version = "0.9.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ee5304ae947f6b22a2f1d7f3ca6d6ffbf22c17e76cd58ea1982f3ea912ae1542"
+checksum = "33fc98ba31ac283a43c8a9f5030ce4ab7190252cf931fa89b6154f45bdffa471"
 dependencies = [
  "extism",
  "miette",
