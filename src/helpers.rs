@@ -4,7 +4,7 @@ use std::path::PathBuf;
 
 #[host_fn]
 extern "ExtismHost" {
-    fn get_env_var(name: &str) -> String;
+    fn get_env_var(name: String) -> String;
 }
 
 pub fn get_rustup_home(env: &HostEnvironment) -> Result<PathBuf, Error> {

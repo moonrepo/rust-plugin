@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.1
+
+#### 🐞 Fixes
+
+- When auto-installing rustup, will now update `PATH` on the host to find the new binaries.
+
 ## 0.7.0
 
 #### 💥 Breaking
