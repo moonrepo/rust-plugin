@@ -9,6 +9,7 @@ use std::path::PathBuf;
 extern "ExtismHost" {
     fn exec_command(input: Json<ExecCommandInput>) -> Json<ExecCommandOutput>;
     fn host_log(input: Json<HostLogInput>);
+    fn set_env_var(name: String, value: String) -> String;
     fn to_virtual_path(input: String) -> String;
 }
 
@@ -135,6 +136,10 @@ pub fn native_install(
             stream: true,
             ..ExecCommandInput::default()
         });
+
+        // Update PATH explicitly, since we can't "reload the shell"
+        // on the host side. This is good enough since it's deterministic.
+        host_env!("PATH", "/home/.cargo/bin");
     }
 
     let version = &input.context.version;
