@@ -9,7 +9,7 @@ use std::path::PathBuf;
 extern "ExtismHost" {
     fn exec_command(input: Json<ExecCommandInput>) -> Json<ExecCommandOutput>;
     fn host_log(input: Json<HostLogInput>);
-    fn set_env_var(name: String, value: String) -> String;
+    fn set_env_var(name: String, value: String);
     fn to_virtual_path(input: String) -> String;
 }
 
