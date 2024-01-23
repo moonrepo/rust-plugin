@@ -17,7 +17,7 @@ static NAME: &str = "Rust";
 
 #[plugin_fn]
 pub fn register_tool(Json(_): Json<ToolMetadataInput>) -> FnResult<Json<ToolMetadataOutput>> {
-    let env = get_proto_environment()?;
+    let env = get_host_environment()?;
 
     Ok(Json(ToolMetadataOutput {
         name: NAME.into(),
@@ -101,7 +101,7 @@ pub fn parse_version_file(
 pub fn native_install(
     Json(input): Json<NativeInstallInput>,
 ) -> FnResult<Json<NativeInstallOutput>> {
-    let env = get_proto_environment()?;
+    let env = get_host_environment()?;
 
     // Install rustup if it does not exist
     if !command_exists(&env, "rustup") {
@@ -205,7 +205,7 @@ pub fn native_uninstall(
 pub fn locate_executables(
     Json(_): Json<LocateExecutablesInput>,
 ) -> FnResult<Json<LocateExecutablesOutput>> {
-    let env = get_proto_environment()?;
+    let env = get_host_environment()?;
 
     // Binaries are provided by Cargo (`~/.cargo/bin`), so don't create
     // our own shim and bin. But we do need to ensure that the install
@@ -246,7 +246,7 @@ pub fn uninstall_global(
 
 #[plugin_fn]
 pub fn sync_manifest(Json(_): Json<SyncManifestInput>) -> FnResult<Json<SyncManifestOutput>> {
-    let env = get_proto_environment()?;
+    let env = get_host_environment()?;
     let triple = get_target_triple(&env, NAME)?;
     let mut output = SyncManifestOutput::default();
     let mut versions = vec![];

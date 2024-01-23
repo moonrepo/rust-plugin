@@ -1,6 +1,6 @@
 [package]
 name = "rust_plugin"
-version = "0.7.1"
+version = "0.8.0"
 edition = "2021"
 license = "MIT"
 publish = false
@@ -10,13 +10,13 @@ crate-type = ['cdylib']
 
 [dependencies]
 extism-pdk = { version = "1.0.0" }
-proto_pdk = { version = "0.14.3" } #, path = "../../proto/crates/pdk" }
+proto_pdk = { version = "0.15.1" } #, path = "../../proto/crates/pdk" }
 serde = "1.0.195"
 toml = "0.8.8"
 
 [dev-dependencies]
-proto_pdk_test_utils = { version = "0.16.1" }       #, path = "../../proto/crates/pdk-test-utils" }
-starbase_sandbox = "0.1.12"
+proto_pdk_test_utils = { version = "0.17.2" }       #, path = "../../proto/crates/pdk-test-utils" }
+starbase_sandbox = "0.1.13"
 tokio = { version = "1.35.1", features = ["full"] }
 
 [features]
