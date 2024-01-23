@@ -8,12 +8,15 @@ use std::path::PathBuf;
 #[host_fn]
 extern "ExtismHost" {
     fn exec_command(input: Json<ExecCommandInput>) -> Json<ExecCommandOutput>;
-    fn host_log(input: Json<HostLogInput>);
     fn set_env_var(name: String, value: String);
     fn to_virtual_path(input: String) -> String;
 }
 
 static NAME: &str = "Rust";
+
+fn get_toolchain_dir(env: &HostEnvironment) -> AnyResult<VirtualPath> {
+    Ok(virtual_path!(buf, get_rustup_home(env)?.join("toolchains")))
+}
 
 #[plugin_fn]
 pub fn register_tool(Json(_): Json<ToolMetadataInput>) -> FnResult<Json<ToolMetadataOutput>> {
@@ -25,7 +28,7 @@ pub fn register_tool(Json(_): Json<ToolMetadataInput>) -> FnResult<Json<ToolMeta
         default_version: Some(UnresolvedVersionSpec::Alias("stable".into())),
         inventory: ToolInventoryMetadata {
             disable_progress_bars: true,
-            override_dir: Some(get_rustup_home(&env)?.join("toolchains")),
+            override_dir: Some(get_toolchain_dir(&env)?),
             version_suffix: Some(format!("-{}", get_target_triple(&env, NAME)?)),
         },
         plugin_version: Some(env!("CARGO_PKG_VERSION").into()),
@@ -105,7 +108,7 @@ pub fn native_install(
 
     // Install rustup if it does not exist
     if !command_exists(&env, "rustup") {
-        host_log!("Installing rustup");
+        debug!("Installing <shell>rustup</shell>");
 
         let is_windows = env.os.is_windows();
         let script_path = PathBuf::from("/proto/temp").join(if is_windows {
@@ -129,13 +132,16 @@ pub fn native_install(
             )?;
         }
 
-        exec_command!(ExecCommandInput {
-            command: script_path.to_string_lossy().to_string(),
-            args: vec!["--default-toolchain".into(), "none".into(), "-y".into()],
-            set_executable: true,
-            stream: true,
-            ..ExecCommandInput::default()
-        });
+        exec_command!(
+            input,
+            ExecCommandInput {
+                command: script_path.to_string_lossy().to_string(),
+                args: vec!["--default-toolchain".into(), "none".into(), "-y".into()],
+                set_executable: true,
+                stream: true,
+                ..ExecCommandInput::default()
+            }
+        );
 
         // Update PATH explicitly, since we can't "reload the shell"
         // on the host side. This is good enough since it's deterministic.
@@ -147,7 +153,7 @@ pub fn native_install(
 
     let triple = format!("{}-{}", channel, get_target_triple(&env, NAME)?);
 
-    host_log!("Installing target {} with rustup", triple);
+    debug!("Installing target <id>{}</id> with rustup", triple);
 
     // Install if not already installed
     let installed_list = exec_command!(pipe, "rustup", ["toolchain", "list"]);
@@ -160,13 +166,13 @@ pub fn native_install(
     {
         // Ensure the bins exist and that this isn't just an empty folder
         if input.context.tool_dir.join("bin").exists() {
-            host_log!("Target already installed in toolchain");
+            debug!("Target already installed in toolchain");
 
             do_install = false;
 
         // Otherwise empty folders cause issues with rustup, so force uninstall it
         } else {
-            host_log!("Detected a broken toolchain, uninstalling it");
+            debug!("Detected a broken toolchain, uninstalling it");
 
             exec_command!(inherit, "rustup", ["toolchain", "uninstall", &channel]);
         }
@@ -248,12 +254,11 @@ pub fn uninstall_global(
 pub fn sync_manifest(Json(_): Json<SyncManifestInput>) -> FnResult<Json<SyncManifestOutput>> {
     let env = get_host_environment()?;
     let triple = get_target_triple(&env, NAME)?;
+    let toolchain_dir = get_toolchain_dir(&env)?;
     let mut output = SyncManifestOutput::default();
     let mut versions = vec![];
 
     // Path may not be whitelisted, so exit early instead of failing
-    let toolchain_dir = virtual_path!(get_rustup_home(&env)?.join("toolchains").to_string_lossy());
-
     let Ok(dirs) = fs::read_dir(toolchain_dir) else {
         return Ok(Json(output));
     };
