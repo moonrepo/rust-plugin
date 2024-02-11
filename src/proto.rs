@@ -174,7 +174,7 @@ pub fn native_install(
         } else {
             debug!("Detected a broken toolchain, uninstalling it");
 
-            exec_command!(inherit, "rustup", ["toolchain", "uninstall", &channel]);
+            exec_command!(inherit, "rustup", ["toolchain", "uninstall", &triple]);
         }
     }
 
