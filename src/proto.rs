@@ -174,7 +174,7 @@ pub fn native_install(
         } else {
             debug!("Detected a broken toolchain, uninstalling it");
 
-            exec_command!(inherit, "rustup", ["toolchain", "uninstall", &channel]);
+            exec_command!(inherit, "rustup", ["toolchain", "uninstall", &triple]);
         }
     }
 
@@ -182,7 +182,7 @@ pub fn native_install(
         exec_command!(
             inherit,
             "rustup",
-            ["toolchain", "install", &channel, "--force"]
+            ["toolchain", "install", &triple, "--force"]
         );
     }
 
@@ -197,9 +197,11 @@ pub fn native_install(
 pub fn native_uninstall(
     Json(input): Json<NativeUninstallInput>,
 ) -> FnResult<Json<NativeUninstallOutput>> {
+    let env = get_host_environment()?;
     let channel = get_channel_from_version(&input.context.version);
+    let triple = format!("{}-{}", channel, get_target_triple(&env, NAME)?);
 
-    exec_command!(inherit, "rustup", ["toolchain", "uninstall", &channel]);
+    exec_command!(inherit, "rustup", ["toolchain", "uninstall", &triple]);
 
     Ok(Json(NativeUninstallOutput {
         uninstalled: true,
