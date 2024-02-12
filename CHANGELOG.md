@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.1
+
+#### 🐞 Fixes
+
+- Use the full triple target when installing and uninstalling toolchains.
+
 ## 0.8.0
 
 #### 🚀 Updates
