@@ -235,24 +235,6 @@ pub fn locate_executables(
 }
 
 #[plugin_fn]
-pub fn install_global(
-    Json(input): Json<InstallGlobalInput>,
-) -> FnResult<Json<InstallGlobalOutput>> {
-    let result = exec_command!(inherit, "cargo", ["install", "--force", &input.dependency]);
-
-    Ok(Json(InstallGlobalOutput::from_exec_command(result)))
-}
-
-#[plugin_fn]
-pub fn uninstall_global(
-    Json(input): Json<UninstallGlobalInput>,
-) -> FnResult<Json<UninstallGlobalOutput>> {
-    let result = exec_command!(inherit, "cargo", ["uninstall", &input.dependency]);
-
-    Ok(Json(UninstallGlobalOutput::from_exec_command(result)))
-}
-
-#[plugin_fn]
 pub fn sync_manifest(Json(_): Json<SyncManifestInput>) -> FnResult<Json<SyncManifestOutput>> {
     let env = get_host_environment()?;
     let triple = get_target_triple(&env, NAME)?;
