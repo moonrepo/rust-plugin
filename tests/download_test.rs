@@ -11,7 +11,11 @@ fn locates_linux_bin() {
     let plugin = create_plugin_with_config(
         "rust-test",
         sandbox.path(),
-        HashMap::from_iter([map_config_environment(HostOS::Linux, HostArch::Arm64)]),
+        HashMap::from_iter([map_config_environment_with_home(
+            HostOS::Linux,
+            HostArch::Arm64,
+            sandbox.path().join(".home"),
+        )]),
     );
 
     assert_eq!(
@@ -35,7 +39,11 @@ fn locates_macos_bin() {
     let plugin = create_plugin_with_config(
         "rust-test",
         sandbox.path(),
-        HashMap::from_iter([map_config_environment(HostOS::MacOS, HostArch::X64)]),
+        HashMap::from_iter([map_config_environment_with_home(
+            HostOS::MacOS,
+            HostArch::X64,
+            sandbox.path().join(".home"),
+        )]),
     );
 
     assert_eq!(
@@ -59,7 +67,11 @@ fn locates_windows_bin() {
     let plugin = create_plugin_with_config(
         "rust-test",
         sandbox.path(),
-        HashMap::from_iter([map_config_environment(HostOS::Windows, HostArch::X86)]),
+        HashMap::from_iter([map_config_environment_with_home(
+            HostOS::Windows,
+            HostArch::X86,
+            sandbox.path().join(".home"),
+        )]),
     );
 
     assert_eq!(
