@@ -8,6 +8,12 @@ extern "ExtismHost" {
 }
 
 pub fn get_rustup_home(env: &HostEnvironment) -> Result<PathBuf, Error> {
+    // Cargo sets the RUSTUP_HOME env var when running tests,
+    // which causes a ton of issues, so intercept it here!
+    if let Some(test_env) = get_test_environment()? {
+        return Ok(test_env.sandbox.join(".home/.rustup"));
+    }
+
     // Variable returns a real path
     Ok(host_env!("RUSTUP_HOME")
         .map(PathBuf::from)
