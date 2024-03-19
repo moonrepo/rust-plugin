@@ -1,22 +1,14 @@
 use proto_pdk_test_utils::*;
-use starbase_sandbox::create_empty_sandbox;
-use std::collections::HashMap;
 
 // We use a fake home directory but rustup requires a real one!
 // generate_download_install_tests!("rust-test", "1.70.0");
 
 #[test]
 fn locates_linux_bin() {
-    let sandbox = create_empty_sandbox();
-    let plugin = create_plugin_with_config(
-        "rust-test",
-        sandbox.path(),
-        HashMap::from_iter([map_config_environment_with_home(
-            HostOS::Linux,
-            HostArch::Arm64,
-            sandbox.path().join(".home"),
-        )]),
-    );
+    let sandbox = create_empty_proto_sandbox();
+    let plugin = sandbox.create_plugin_with_config("rust-test", |config| {
+        config.host(HostOS::Linux, HostArch::Arm64);
+    });
 
     assert_eq!(
         plugin
@@ -35,16 +27,10 @@ fn locates_linux_bin() {
 
 #[test]
 fn locates_macos_bin() {
-    let sandbox = create_empty_sandbox();
-    let plugin = create_plugin_with_config(
-        "rust-test",
-        sandbox.path(),
-        HashMap::from_iter([map_config_environment_with_home(
-            HostOS::MacOS,
-            HostArch::X64,
-            sandbox.path().join(".home"),
-        )]),
-    );
+    let sandbox = create_empty_proto_sandbox();
+    let plugin = sandbox.create_plugin_with_config("rust-test", |config| {
+        config.host(HostOS::MacOS, HostArch::X64);
+    });
 
     assert_eq!(
         plugin
@@ -63,16 +49,10 @@ fn locates_macos_bin() {
 
 #[test]
 fn locates_windows_bin() {
-    let sandbox = create_empty_sandbox();
-    let plugin = create_plugin_with_config(
-        "rust-test",
-        sandbox.path(),
-        HashMap::from_iter([map_config_environment_with_home(
-            HostOS::Windows,
-            HostArch::X86,
-            sandbox.path().join(".home"),
-        )]),
-    );
+    let sandbox = create_empty_proto_sandbox();
+    let plugin = sandbox.create_plugin_with_config("rust-test", |config| {
+        config.host(HostOS::Windows, HostArch::X86);
+    });
 
     assert_eq!(
         plugin
