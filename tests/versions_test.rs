@@ -1,5 +1,4 @@
 use proto_pdk_test_utils::*;
-use starbase_sandbox::create_empty_sandbox;
 
 generate_resolve_versions_tests!("rust-test", {
     "stable" => "stable",
@@ -11,8 +10,8 @@ generate_resolve_versions_tests!("rust-test", {
 
 #[test]
 fn loads_versions_from_git_tags() {
-    let sandbox = create_empty_sandbox();
-    let plugin = create_plugin("rust-test", sandbox.path());
+    let sandbox = create_empty_proto_sandbox();
+    let plugin = sandbox.create_plugin("rust-test");
 
     let output = plugin.load_versions(LoadVersionsInput::default());
 
@@ -21,8 +20,8 @@ fn loads_versions_from_git_tags() {
 
 #[test]
 fn sets_latest_alias() {
-    let sandbox = create_empty_sandbox();
-    let plugin = create_plugin("rust-test", sandbox.path());
+    let sandbox = create_empty_proto_sandbox();
+    let plugin = sandbox.create_plugin("rust-test");
 
     let output = plugin.load_versions(LoadVersionsInput::default());
 
@@ -33,8 +32,8 @@ fn sets_latest_alias() {
 
 #[test]
 fn parses_rust_toolchain() {
-    let sandbox = create_empty_sandbox();
-    let plugin = create_plugin("rust-test", sandbox.path());
+    let sandbox = create_empty_proto_sandbox();
+    let plugin = sandbox.create_plugin("rust-test");
 
     assert_eq!(
         plugin.parse_version_file(ParseVersionFileInput {
@@ -49,8 +48,8 @@ fn parses_rust_toolchain() {
 
 #[test]
 fn ignores_empty_rust_toolchain() {
-    let sandbox = create_empty_sandbox();
-    let plugin = create_plugin("rust-test", sandbox.path());
+    let sandbox = create_empty_proto_sandbox();
+    let plugin = sandbox.create_plugin("rust-test");
 
     assert_eq!(
         plugin.parse_version_file(ParseVersionFileInput {
@@ -63,8 +62,8 @@ fn ignores_empty_rust_toolchain() {
 
 #[test]
 fn parses_rust_toolchain_toml() {
-    let sandbox = create_empty_sandbox();
-    let plugin = create_plugin("rust-test", sandbox.path());
+    let sandbox = create_empty_proto_sandbox();
+    let plugin = sandbox.create_plugin("rust-test");
 
     assert_eq!(
         plugin.parse_version_file(ParseVersionFileInput {
@@ -79,8 +78,8 @@ fn parses_rust_toolchain_toml() {
 
 #[test]
 fn ignores_empty_rust_toolchain_toml() {
-    let sandbox = create_empty_sandbox();
-    let plugin = create_plugin("rust-test", sandbox.path());
+    let sandbox = create_empty_proto_sandbox();
+    let plugin = sandbox.create_plugin("rust-test");
 
     assert_eq!(
         plugin.parse_version_file(ParseVersionFileInput {
