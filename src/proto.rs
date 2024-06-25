@@ -260,17 +260,15 @@ pub fn sync_manifest(Json(_): Json<SyncManifestInput>) -> FnResult<Json<SyncMani
             continue;
         }
 
-        let Ok(spec) = UnresolvedVersionSpec::parse(name.replace(&format!("-{triple}"), "")) else {
+        let Ok(spec) = VersionSpec::parse(name.replace(&format!("-{triple}"), "")) else {
             continue;
         };
 
-        if is_non_version_channel(&spec) {
+        if is_non_version_channel(&spec.to_unresolved_spec()) {
             continue;
         }
 
-        if let UnresolvedVersionSpec::Version(version) = spec {
-            versions.push(version);
-        }
+        versions.push(spec);
     }
 
     if !versions.is_empty() {

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.10.2
+
+#### 🚀 Updates
+
+- Updated dependencies.
+
 ## 0.10.1
 
 #### 🚀 Updates
