@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.10.4
+
+#### 🐞 Fixes
+
+- Updated our "automatic rustup installation" to respect the `CARGO_HOME` environment variable.
+
 ## 0.10.3
 
 #### 🚀 Updates
