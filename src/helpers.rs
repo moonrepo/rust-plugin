@@ -9,6 +9,32 @@ extern "ExtismHost" {
     fn to_virtual_path(input: String) -> String;
 }
 
+fn get_home_env(key: &str) -> Result<Option<VirtualPath>, Error> {
+    match host_env!(key) {
+        Some(value) => {
+            if value.is_empty() {
+                return Ok(None);
+            }
+
+            let path = PathBuf::from(value);
+
+            // Variable returns a real path, so convert to virtual
+            let path = if path.is_absolute() {
+                virtual_path!(buf, path)
+            } else {
+                virtual_path!("/cwd").join(path)
+            };
+
+            Ok(Some(path))
+        }
+        None => Ok(None),
+    }
+}
+
+pub fn get_cargo_home(env: &HostEnvironment) -> Result<VirtualPath, Error> {
+    Ok(get_home_env("CARGO_HOME")?.unwrap_or_else(|| env.home_dir.join(".cargo")))
+}
+
 pub fn get_rustup_home(env: &HostEnvironment) -> Result<VirtualPath, Error> {
     // Cargo sets the RUSTUP_HOME env var when running tests,
     // which causes a ton of issues, so intercept it here!
@@ -16,19 +42,7 @@ pub fn get_rustup_home(env: &HostEnvironment) -> Result<VirtualPath, Error> {
         return Ok(virtual_path!(buf, test_env.sandbox).join(".home/.rustup"));
     }
 
-    Ok(match host_env!("RUSTUP_HOME") {
-        Some(path) => {
-            let path = PathBuf::from(path);
-
-            // Variable returns a real path, so convert to virtual
-            if path.is_absolute() {
-                virtual_path!(buf, path)
-            } else {
-                virtual_path!("/cwd").join(path)
-            }
-        }
-        None => env.home_dir.join(".rustup"),
-    })
+    Ok(get_home_env("RUSTUP_HOME")?.unwrap_or_else(|| env.home_dir.join(".rustup")))
 }
 
 pub fn get_channel_from_version(spec: &VersionSpec) -> String {
