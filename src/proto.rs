@@ -144,7 +144,10 @@ pub fn native_install(
 
         // Update PATH explicitly, since we can't "reload the shell"
         // on the host side. This is good enough since it's deterministic.
-        host_env!("PATH", get_cargo_home(&env)?.join("bin").to_string_lossy());
+        host_env!(
+            "PATH",
+            format!("{}:$HOME/.cargo/bin", get_cargo_home(&env)?.join("bin"))
+        );
     }
 
     let version = &input.context.version;
