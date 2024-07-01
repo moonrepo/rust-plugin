@@ -40,13 +40,13 @@ pub fn load_versions(Json(_): Json<LoadVersionsInput>) -> FnResult<Json<LoadVers
     let tags = load_git_tags("https://github.com/rust-lang/rust")?;
 
     let tags = tags
-        .iter()
+        .into_iter()
         .filter_map(|tag| {
             // Filter out old versions
             if tag.starts_with("release-") || tag.starts_with("0.") {
                 None
             } else {
-                Some(tag.to_owned())
+                Some(tag)
             }
         })
         .collect::<Vec<_>>();
@@ -144,7 +144,7 @@ pub fn native_install(
 
         // Update PATH explicitly, since we can't "reload the shell"
         // on the host side. This is good enough since it's deterministic.
-        host_env!("PATH", "/userhome/.cargo/bin");
+        host_env!("PATH", get_cargo_home(&env)?.join("bin").to_string_lossy());
     }
 
     let version = &input.context.version;
