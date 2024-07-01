@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.10.3
+
+#### 🚀 Updates
+
+- Updated `RUSTUP_HOME` to support relative paths.
+
 ## 0.10.2
 
 #### 🚀 Updates

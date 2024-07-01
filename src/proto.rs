@@ -9,13 +9,12 @@ use std::path::PathBuf;
 extern "ExtismHost" {
     fn exec_command(input: Json<ExecCommandInput>) -> Json<ExecCommandOutput>;
     fn set_env_var(name: String, value: String);
-    fn to_virtual_path(input: String) -> String;
 }
 
 static NAME: &str = "Rust";
 
 fn get_toolchain_dir(env: &HostEnvironment) -> AnyResult<VirtualPath> {
-    Ok(virtual_path!(buf, get_rustup_home(env)?.join("toolchains")))
+    Ok(get_rustup_home(env)?.join("toolchains"))
 }
 
 #[plugin_fn]
