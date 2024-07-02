@@ -225,6 +225,7 @@ pub fn locate_executables(
     primary.no_shim = true;
 
     Ok(Json(LocateExecutablesOutput {
+        exes_dir: Some("bin".into()),
         globals_lookup_dirs: vec![
             "$CARGO_INSTALL_ROOT/bin".into(),
             "$CARGO_HOME/bin".into(),
