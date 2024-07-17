@@ -1,3 +1,5 @@
+> # Migrated to a new repository: https://github.com/moonrepo/tools
+
 # Rust plugin
 
 [Rust](https://www.rust-lang.org/) WASM plugin for [proto](https://github.com/moonrepo/proto).
